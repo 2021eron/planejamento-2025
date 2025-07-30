@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planejamento 2025 (Online)</title>
+    <!-- ESTILOS (CSS) - Não mudou -->
+    <style>
+        :root {
+            --cor-fundo: #0b1a33; --cor-principal: #1e3a6b; --cor-destaque: #3b5998;
+            --cor-texto: #dfe3ee; --cor-rosa-fds: #fce4e4; --cor-verde: #90ee90;
+            --cor-amarelo: #ffff00; --cor-laranja: #ffa500; --cor-vermelho: #ff6347;
+        }
+        body { font-family: system-ui, sans-serif; background-color: var(--cor-fundo); color: var(--cor-texto); margin: 0; padding: 15px; }
+        .container { max-width: 1400px; margin: auto; }
+        header { text-align: center; margin-bottom: 20px; }
+        .title { background-color: var(--cor-destaque); padding: 10px 20px; font-size: 2em; font-weight: bold; display: inline-block; border-radius: 8px; border: 2px solid var(--cor-texto); }
+        .legend { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 20px 0; }
+        .legend-item { padding: 8px 15px; border-radius: 5px; font-weight: bold; font-size: 0.9em; }
+        .legend-verde { background-color: var(--cor-verde); color: black; }
+        .legend-laranja { background-color: var(--cor-laranja); color: black; }
+        .legend-amarelo { background-color: var(--cor-amarelo); color: black; }
+        .legend-vermelho { background-color: var(--cor-vermelho); color: white; }
+        .employee-controls { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 25px; padding: 15px; background-color: var(--cor-principal); border-radius: 8px; }
+        .employee-controls select, .employee-controls input, .employee-controls button { padding: 10px; border-radius: 5px; border: 1px solid var(--cor-texto); font-size: 1em; width: 90%; max-width: 400px; box-sizing: border-box; }
+        .employee-controls button { cursor: pointer; background-color: var(--cor-destaque); color: white; font-weight: bold; }
+        #calendar-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
+        .month-container { flex: 1 1 300px; min-width: 300px; max-width: 400px; }
+        .month-title { text-align: center; font-size: 1.2em; font-weight: bold; color: var(--cor-texto); margin-bottom: 10px; }
+        .month-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+        .header-cell, .day-cell { display: flex; align-items: center; justify-content: center; padding: 5px; border-radius: 4px; }
+        .header-cell { background-color: var(--cor-principal); font-weight: bold; font-size: 0.8em; }
+        .day-cell { background-color: white; color: black; font-size: 0.9em; height: 35px; }
+        .day-cell.weekend { background-color: var(--cor-rosa-fds); }
+        .day-cell.valid-day { cursor: pointer; }
+        .day-cell.empty { background-color: transparent; }
+        .color-verde { background-color: var(--cor-verde) !important; }
+        .color-amarelo { background-color: var(--cor-amarelo) !important; }
+        .color-laranja { background-color: var(--cor-laranja) !important; }
+        .color-vermelho { background-color: var(--cor-vermelho) !important; color: white !important; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- O HTML do container, header e controles não mudou -->
+        <header>
+            <div class="title">PLANEJAMENTO 2025</div>
+            <div class="legend">
+                <div class="legend-item legend-verde">Feriados Nacionais</div>
+                <div class="legend-item legend-laranja">Feriados Estaduais</div>
+                <div class="legend-item legend-amarelo">Emendas</div>
+                <div class="legend-item legend-vermelho">Faltas</div>
+            </div>
+        </header>
+        <div class="employee-controls">
+            <label for="employee-select">Funcionário:</label>
+            <select id="employee-select"></select>
+            <input type="text" id="new-employee-name" placeholder="Nome do novo funcionário">
+            <button id="add-employee-btn">Adicionar</button>
+            <button id="remove-employee-btn">Remover Selecionado</button>
+        </div>
+        <div id="calendar-container"></div>
+    </div>
+
+    <!-- ===== NOVOS SCRIPTS DO FIREBASE ===== -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+
+    <script>
+        // SEU CÓDIGO DO FIREBASE FOI INSERIDO AQUI
+        const firebaseConfig = {
+          apiKey: "AIzaSyAvIeT-wJr8SpWerE7C4f0uYApQlRib4nY",
+          authDomain: "planejamento-lofty.firebaseapp.com",
+          projectId: "planejamento-lofty",
+          storageBucket: "planejamento-lofty.firebasestorage.app",
+          messagingSenderId: "698600451216",
+          appId: "1:698600451216:web:26670978ab1b707eaa3c15"
+        };
+        // =======================================================
+
+        // Inicializa o Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Referência ao documento no Firestore onde os dados serão salvos
+        // Todos os usuários editarão este mesmo documento
+        const docRef = db.collection("planejamentos").doc("dados2025");
+
+        // O resto do código
+        document.addEventListener('DOMContentLoaded', () => {
+            const YEAR = 2025;
+            const MONTHS = ['JANEIRO', 'FEVEREIRO', 'MARÇO', 'ABRIL', 'MAIO', 'JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'];
+            const DAYS_OF_WEEK = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB', 'DOM'];
+            const COLOR_CYCLE = ['default', 'verde', 'amarelo', 'laranja', 'vermelho'];
+            
+            const calendarContainer = document.getElementById('calendar-container');
+            const employeeSelect = document.getElementById('employee-select');
+            const newEmployeeInput = document.getElementById('new-employee-name');
+            const addEmployeeBtn = document.getElementById('add-employee-btn');
+            const removeEmployeeBtn = document.getElementById('remove-employee-btn');
+
+            let state = { funcionarios: [], funcionarioSelecionadoId: null };
+            let localStateLoaded = false; // Flag para evitar sobrescrever dados
+
+            // ===== FUNÇÃO MODIFICADA PARA SALVAR NO FIREBASE =====
+            function saveState() {
+                if (!localStateLoaded) return; // Não salva antes de carregar os dados da nuvem
+                docRef.set(state).catch(error => {
+                    console.error("Erro ao salvar no Firebase: ", error);
+                });
+            }
+
+            // ===== NOVA FUNÇÃO PARA OBSERVAR MUDANÇAS EM TEMPO REAL =====
+            function listenForChanges() {
+                docRef.onSnapshot(doc => {
+                    if (doc.exists) {
+                        state = doc.data();
+                    } else {
+                        // Se o documento não existe na nuvem, cria um estado inicial
+                        const initialId = `func-${Date.now()}`;
+                        state = {
+                            funcionarios: [{
+                                id: initialId, nome: "Meu Planejamento",
+                                calendario: {
+                                    '2025-01-01': 'verde', '2025-03-03': 'verde', '2025-03-04': 'verde', '2025-04-18': 'verde',
+                                    '2025-04-21': 'verde', '2025-05-01': 'verde', '2025-06-19': 'verde', '2025-09-07': 'verde',
+                                    '2025-10-12': 'verde', '2025-11-02': 'verde', '2025-11-15': 'verde', '2025-11-20': 'verde',
+                                    '2025-12-25': 'verde'
+                                }
+                            }],
+                            funcionarioSelecionadoId: initialId,
+                        };
+                        saveState(); // Salva o estado inicial na nuvem
+                    }
+                    localStateLoaded = true;
+                    renderApp(); // Renderiza a tela com os dados da nuvem
+                });
+            }
+
+            // A função renderApp e outras funções de manipulação do DOM permanecem as mesmas
+            function renderApp() { renderEmployeeControls(); renderCalendar(); }
+            function renderEmployeeControls() {
+                const currentSelection = employeeSelect.value;
+                employeeSelect.innerHTML = '';
+                if (state.funcionarios.length === 0) {
+                     const option = document.createElement('option');
+                     option.textContent = "Adicione um funcionário";
+                     employeeSelect.appendChild(option);
+                     employeeSelect.disabled = true; removeEmployeeBtn.disabled = true;
+                } else {
+                    employeeSelect.disabled = false; removeEmployeeBtn.disabled = false;
+                    state.funcionarios.forEach(func => {
+                        const option = document.createElement('option');
+                        option.value = func.id;
+                        option.textContent = func.nome;
+                        employeeSelect.appendChild(option);
+                    });
+                    // Tenta manter a seleção do funcionário após a renderização
+                    employeeSelect.value = state.funcionarios.some(f => f.id === currentSelection) ? currentSelection : state.funcionarioSelecionadoId;
+                    state.funcionarioSelecionadoId = employeeSelect.value;
+                }
+            }
+            function renderCalendar() {
+                calendarContainer.innerHTML = '';
+                const funcionarioAtual = state.funcionarios.find(f => f.id === state.funcionarioSelecionadoId);
+                MONTHS.forEach((monthName, monthIndex) => {
+                    const monthContainer = document.createElement('div');
+                    monthContainer.className = 'month-container';
+                    const title = document.createElement('h3');
+                    title.className = 'month-title';
+                    title.textContent = monthName;
+                    monthContainer.appendChild(title);
+                    const monthGrid = document.createElement('div');
+                    monthGrid.className = 'month-grid';
+                    DAYS_OF_WEEK.forEach(day => {
+                        const headerCell = document.createElement('div');
+                        headerCell.className = 'header-cell';
+                        headerCell.textContent = day;
+                        monthGrid.appendChild(headerCell);
+                    });
+                    const daysInMonth = new Date(YEAR, monthIndex + 1, 0).getDate();
+                    const firstDayOfWeek = (new Date(YEAR, monthIndex, 1).getDay() + 6) % 7;
+                    for (let i = 0; i < firstDayOfWeek; i++) {
+                        const emptyCell = document.createElement('div');
+                        emptyCell.classList.add('day-cell', 'empty');
+                        monthGrid.appendChild(emptyCell);
+                    }
+                    for (let day = 1; day <= daysInMonth; day++) {
+                        const dayCell = document.createElement('div');
+                        dayCell.classList.add('day-cell', 'valid-day');
+                        dayCell.textContent = day;
+                        const dateString = `${YEAR}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                        dayCell.dataset.date = dateString;
+                        const dayOfWeek = new Date(YEAR, monthIndex, day).getDay();
+                        if (dayOfWeek === 0 || dayOfWeek === 6) { dayCell.classList.add('weekend'); }
+                        if (funcionarioAtual && funcionarioAtual.calendario[dateString]) {
+                            const colorClass = `color-${funcionarioAtual.calendario[dateString]}`;
+                            dayCell.classList.add(colorClass);
+                        }
+                        monthGrid.appendChild(dayCell);
+                    }
+                    monthContainer.appendChild(monthGrid);
+                    calendarContainer.appendChild(monthContainer);
+                });
+            }
+            function handleDayClick(event) {
+                const cell = event.target.closest('.valid-day');
+                if (!cell || !state.funcionarioSelecionadoId) return;
+                const date = cell.dataset.date;
+                const funcionario = state.funcionarios.find(f => f.id === state.funcionarioSelecionadoId);
+                if (!funcionario) return;
+                const currentColor = funcionario.calendario[date] || 'default';
+                const currentIndex = COLOR_CYCLE.indexOf(currentColor);
+                const nextIndex = (currentIndex + 1) % COLOR_CYCLE.length;
+                const nextColor = COLOR_CYCLE[nextIndex];
+                if (nextColor === 'default') { delete funcionario.calendario[date]; } 
+                else { funcionario.calendario[date] = nextColor; }
+                saveState();
+            }
+            function handleAddEmployee() {
+                const name = newEmployeeInput.value.trim();
+                if (name) {
+                    const newId = `func-${Date.now()}`;
+                    state.funcionarios.push({ id: newId, nome: name, calendario: {} });
+                    state.funcionarioSelecionadoId = newId;
+                    newEmployeeInput.value = '';
+                    saveState();
+                } else { alert('Por favor, insira um nome para o funcionário.'); }
+            }
+            function handleRemoveEmployee() {
+                if (!state.funcionarioSelecionadoId || state.funcionarios.length === 0) return;
+                const selectedEmployee = state.funcionarios.find(f => f.id === state.funcionarioSelecionadoId);
+                if(confirm(`Tem certeza que deseja remover "${selectedEmployee.nome}"? Esta ação não pode ser desfeita.`)) {
+                    state.funcionarios = state.funcionarios.filter(f => f.id !== state.funcionarioSelecionadoId);
+                    state.funcionarioSelecionadoId = state.funcionarios.length > 0 ? state.funcionarios[0].id : null;
+                    saveState();
+                }
+            }
+            function handleSelectEmployee() {
+                state.funcionarioSelecionadoId = employeeSelect.value;
+                renderCalendar();
+                // Não precisa salvar o estado aqui, pois a seleção é local e não precisa ser sincronizada
+            }
+
+            // Inicialização
+            listenForChanges(); // Inicia a escuta por mudanças no Firebase
+
+            // Listeners de eventos
+            calendarContainer.addEventListener('click', handleDayClick);
+            addEmployeeBtn.addEventListener('click', handleAddEmployee);
+            removeEmployeeBtn.addEventListener('click', handleRemoveEmployee);
+            employeeSelect.addEventListener('change', handleSelectEmployee);
+        });
+    </script>
+</body>
+</html>
