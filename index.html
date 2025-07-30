@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Planejamento 2025 (Online)</title>
-    <!-- ESTILOS (CSS) - Não mudou -->
+    <!-- ESTILOS (CSS) - Com alteraÃ§Ãµes para o novo layout -->
     <style>
         :root {
             --cor-fundo: #0b1a33; --cor-principal: #1e3a6b; --cor-destaque: #3b5998;
@@ -21,9 +21,73 @@
         .legend-laranja { background-color: var(--cor-laranja); color: black; }
         .legend-amarelo { background-color: var(--cor-amarelo); color: black; }
         .legend-vermelho { background-color: var(--cor-vermelho); color: white; }
-        .employee-controls { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 25px; padding: 15px; background-color: var(--cor-principal); border-radius: 8px; }
-        .employee-controls select, .employee-controls input, .employee-controls button { padding: 10px; border-radius: 5px; border: 1px solid var(--cor-texto); font-size: 1em; width: 90%; max-width: 400px; box-sizing: border-box; }
+        
+        /* ===== ESTILOS MODIFICADOS E NOVOS ===== */
+        .controls-container {
+            display: flex;
+            justify-content: space-between; /* Alinha os itens nas extremidades */
+            align-items: flex-start; /* Alinha os itens no topo */
+            gap: 20px;
+            margin-bottom: 25px;
+            padding: 20px;
+            background-color: var(--cor-principal);
+            border-radius: 8px;
+            flex-wrap: wrap; /* Permite quebrar linha em telas menores */
+        }
+        .employee-controls { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: flex-start; /* Alinha os controles Ã  esquerda */
+            gap: 10px; 
+            flex: 1; /* Permite que cresÃ§a */
+            min-width: 280px; /* Largura mÃ­nima */
+        }
+        .employee-controls select, .employee-controls input, .employee-controls button { 
+            padding: 10px; 
+            border-radius: 5px; 
+            border: 1px solid var(--cor-texto); 
+            font-size: 1em; 
+            width: 100%; /* Ocupa a largura do container pai */
+            max-width: 400px; 
+            box-sizing: border-box; 
+        }
         .employee-controls button { cursor: pointer; background-color: var(--cor-destaque); color: white; font-weight: bold; }
+        
+        /* NOVO Bloco de Resumo de Folgas */
+        .summary-container {
+            flex: 1;
+            min-width: 280px;
+            padding: 15px;
+            background-color: var(--cor-destaque);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .summary-item {
+            font-size: 1em;
+            display: flex;
+            justify-content: space-between;
+        }
+        .summary-item strong {
+            font-size: 1.1em;
+        }
+        .summary-item span {
+            font-weight: bold;
+            background-color: var(--cor-fundo);
+            padding: 2px 8px;
+            border-radius: 4px;
+            min-width: 30px;
+            text-align: center;
+        }
+        .summary-total {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid var(--cor-texto);
+        }
+
+        /* ===== FIM DAS MODIFICAÃ‡Ã•ES DE ESTILO ===== */
+        
         #calendar-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
         .month-container { flex: 1 1 300px; min-width: 300px; max-width: 400px; }
         .month-title { text-align: center; font-size: 1.2em; font-weight: bold; color: var(--cor-texto); margin-bottom: 10px; }
@@ -42,7 +106,6 @@
 </head>
 <body>
     <div class="container">
-        <!-- O HTML do container, header e controles não mudou -->
         <header>
             <div class="title">PLANEJAMENTO 2025</div>
             <div class="legend">
@@ -52,22 +115,41 @@
                 <div class="legend-item legend-vermelho">Faltas</div>
             </div>
         </header>
-        <div class="employee-controls">
-            <label for="employee-select">Funcionário:</label>
-            <select id="employee-select"></select>
-            <input type="text" id="new-employee-name" placeholder="Nome do novo funcionário">
-            <button id="add-employee-btn">Adicionar</button>
-            <button id="remove-employee-btn">Remover Selecionado</button>
+
+        <!-- ===== ESTRUTURA HTML MODIFICADA ===== -->
+        <div class="controls-container">
+            <div class="employee-controls">
+                <label for="employee-select">FuncionÃ¡rio:</label>
+                <select id="employee-select"></select>
+                <input type="text" id="new-employee-name" placeholder="Nome do novo funcionÃ¡rio">
+                <button id="add-employee-btn">Adicionar</button>
+                <button id="remove-employee-btn">Remover Selecionado</button>
+            </div>
+            
+            <!-- NOVO Bloco HTML para os Resumos -->
+            <div class="summary-container">
+                <div class="summary-item">
+                    Folgas Ãšteis: <span id="summary-uteis">0</span>
+                </div>
+                <div class="summary-item">
+                    Folgas Feriado e FDS: <span id="summary-feriado-fds">0</span>
+                </div>
+                <div class="summary-item summary-total">
+                    <strong>TOTAL ANUAL:</strong> <strong><span id="summary-total">0</span></strong>
+                </div>
+            </div>
         </div>
+        <!-- ==================================== -->
+        
         <div id="calendar-container"></div>
     </div>
 
-    <!-- ===== NOVOS SCRIPTS DO FIREBASE ===== -->
+    <!-- ===== SCRIPTS DO FIREBASE (Sem alteraÃ§Ã£o) ===== -->
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 
     <script>
-        // SEU CÓDIGO DO FIREBASE FOI INSERIDO AQUI
+        // SEU CÃ“DIGO DO FIREBASE FOI INSERIDO AQUI
         const firebaseConfig = {
           apiKey: "AIzaSyAvIeT-wJr8SpWerE7C4f0uYApQlRib4nY",
           authDomain: "planejamento-lofty.firebaseapp.com",
@@ -81,16 +163,12 @@
         // Inicializa o Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-
-        // Referência ao documento no Firestore onde os dados serão salvos
-        // Todos os usuários editarão este mesmo documento
         const docRef = db.collection("planejamentos").doc("dados2025");
 
-        // O resto do código
         document.addEventListener('DOMContentLoaded', () => {
             const YEAR = 2025;
-            const MONTHS = ['JANEIRO', 'FEVEREIRO', 'MARÇO', 'ABRIL', 'MAIO', 'JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'];
-            const DAYS_OF_WEEK = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB', 'DOM'];
+            const MONTHS = ['JANEIRO', 'FEVEREIRO', 'MARÃ‡O', 'ABRIL', 'MAIO', 'JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'];
+            const DAYS_OF_WEEK = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÃB', 'DOM'];
             const COLOR_CYCLE = ['default', 'verde', 'amarelo', 'laranja', 'vermelho'];
             
             const calendarContainer = document.getElementById('calendar-container');
@@ -100,23 +178,18 @@
             const removeEmployeeBtn = document.getElementById('remove-employee-btn');
 
             let state = { funcionarios: [], funcionarioSelecionadoId: null };
-            let localStateLoaded = false; // Flag para evitar sobrescrever dados
+            let localStateLoaded = false;
 
-            // ===== FUNÇÃO MODIFICADA PARA SALVAR NO FIREBASE =====
             function saveState() {
-                if (!localStateLoaded) return; // Não salva antes de carregar os dados da nuvem
-                docRef.set(state).catch(error => {
-                    console.error("Erro ao salvar no Firebase: ", error);
-                });
+                if (!localStateLoaded) return;
+                docRef.set(state).catch(error => console.error("Erro ao salvar no Firebase: ", error));
             }
 
-            // ===== NOVA FUNÇÃO PARA OBSERVAR MUDANÇAS EM TEMPO REAL =====
             function listenForChanges() {
                 docRef.onSnapshot(doc => {
                     if (doc.exists) {
                         state = doc.data();
                     } else {
-                        // Se o documento não existe na nuvem, cria um estado inicial
                         const initialId = `func-${Date.now()}`;
                         state = {
                             funcionarios: [{
@@ -130,21 +203,63 @@
                             }],
                             funcionarioSelecionadoId: initialId,
                         };
-                        saveState(); // Salva o estado inicial na nuvem
+                        saveState();
                     }
                     localStateLoaded = true;
-                    renderApp(); // Renderiza a tela com os dados da nuvem
+                    renderApp();
                 });
             }
 
-            // A função renderApp e outras funções de manipulação do DOM permanecem as mesmas
-            function renderApp() { renderEmployeeControls(); renderCalendar(); }
+            // ===== NOVA FUNÃ‡ÃƒO PARA CALCULAR E EXIBIR OS RESUMOS =====
+            function calculateAndDisplaySummaries() {
+                const funcionarioAtual = state.funcionarios.find(f => f.id === state.funcionarioSelecionadoId);
+
+                let folgasUteis = 0;
+                let folgasFeriadoFDS = 0;
+
+                if (funcionarioAtual && funcionarioAtual.calendario) {
+                    for (const dateString in funcionarioAtual.calendario) {
+                        const color = funcionarioAtual.calendario[dateString];
+                        // Adicionar 'T00:00:00' para evitar problemas de fuso horÃ¡rio que podem alterar o dia
+                        const date = new Date(dateString + 'T00:00:00');
+                        const dayOfWeek = date.getDay(); // 0 = Domingo, 1 = Segunda, ..., 6 = SÃ¡bado
+
+                        const isWeekday = dayOfWeek >= 1 && dayOfWeek <= 5;
+
+                        // CondiÃ§Ã£o para "Folgas Ãšteis"
+                        // Cores amarela, laranja ou vermelha de segunda a sexta
+                        if (isWeekday && ['amarelo', 'laranja', 'vermelho'].includes(color)) {
+                            folgasUteis++;
+                        }
+
+                        // CondiÃ§Ã£o para "Folgas Feriado e Final de Semana"
+                        // Qualquer cor no fim de semana OU cor verde em qualquer dia
+                        if (!isWeekday || color === 'verde') {
+                           folgasFeriadoFDS++;
+                        }
+                    }
+                }
+                
+                const totalAnual = folgasUteis + folgasFeriadoFDS;
+
+                // Atualiza os valores no HTML
+                document.getElementById('summary-uteis').textContent = folgasUteis;
+                document.getElementById('summary-feriado-fds').textContent = folgasFeriadoFDS;
+                document.getElementById('summary-total').textContent = totalAnual;
+            }
+
+            function renderApp() {
+                renderEmployeeControls();
+                renderCalendar();
+                calculateAndDisplaySummaries(); // Chama o cÃ¡lculo apÃ³s renderizar tudo
+            }
+
             function renderEmployeeControls() {
                 const currentSelection = employeeSelect.value;
                 employeeSelect.innerHTML = '';
                 if (state.funcionarios.length === 0) {
                      const option = document.createElement('option');
-                     option.textContent = "Adicione um funcionário";
+                     option.textContent = "Adicione um funcionÃ¡rio";
                      employeeSelect.appendChild(option);
                      employeeSelect.disabled = true; removeEmployeeBtn.disabled = true;
                 } else {
@@ -155,11 +270,11 @@
                         option.textContent = func.nome;
                         employeeSelect.appendChild(option);
                     });
-                    // Tenta manter a seleção do funcionário após a renderização
                     employeeSelect.value = state.funcionarios.some(f => f.id === currentSelection) ? currentSelection : state.funcionarioSelecionadoId;
                     state.funcionarioSelecionadoId = employeeSelect.value;
                 }
             }
+
             function renderCalendar() {
                 calendarContainer.innerHTML = '';
                 const funcionarioAtual = state.funcionarios.find(f => f.id === state.funcionarioSelecionadoId);
@@ -203,20 +318,23 @@
                     calendarContainer.appendChild(monthContainer);
                 });
             }
+            
             function handleDayClick(event) {
                 const cell = event.target.closest('.valid-day');
                 if (!cell || !state.funcionarioSelecionadoId) return;
                 const date = cell.dataset.date;
                 const funcionario = state.funcionarios.find(f => f.id === state.funcionarioSelecionadoId);
                 if (!funcionario) return;
+                if (!funcionario.calendario) { funcionario.calendario = {}; } // Garante que o calendÃ¡rio existe
                 const currentColor = funcionario.calendario[date] || 'default';
                 const currentIndex = COLOR_CYCLE.indexOf(currentColor);
                 const nextIndex = (currentIndex + 1) % COLOR_CYCLE.length;
                 const nextColor = COLOR_CYCLE[nextIndex];
                 if (nextColor === 'default') { delete funcionario.calendario[date]; } 
                 else { funcionario.calendario[date] = nextColor; }
-                saveState();
+                saveState(); // Salva e aciona o 'listenForChanges' que vai chamar renderApp() e recalcular
             }
+
             function handleAddEmployee() {
                 const name = newEmployeeInput.value.trim();
                 if (name) {
@@ -225,27 +343,26 @@
                     state.funcionarioSelecionadoId = newId;
                     newEmployeeInput.value = '';
                     saveState();
-                } else { alert('Por favor, insira um nome para o funcionário.'); }
+                } else { alert('Por favor, insira um nome para o funcionÃ¡rio.'); }
             }
+
             function handleRemoveEmployee() {
                 if (!state.funcionarioSelecionadoId || state.funcionarios.length === 0) return;
                 const selectedEmployee = state.funcionarios.find(f => f.id === state.funcionarioSelecionadoId);
-                if(confirm(`Tem certeza que deseja remover "${selectedEmployee.nome}"? Esta ação não pode ser desfeita.`)) {
+                if(confirm(`Tem certeza que deseja remover "${selectedEmployee.nome}"? Esta aÃ§Ã£o nÃ£o pode ser desfeita.`)) {
                     state.funcionarios = state.funcionarios.filter(f => f.id !== state.funcionarioSelecionadoId);
                     state.funcionarioSelecionadoId = state.funcionarios.length > 0 ? state.funcionarios[0].id : null;
                     saveState();
                 }
             }
+
             function handleSelectEmployee() {
                 state.funcionarioSelecionadoId = employeeSelect.value;
                 renderCalendar();
-                // Não precisa salvar o estado aqui, pois a seleção é local e não precisa ser sincronizada
+                calculateAndDisplaySummaries(); // Recalcula ao trocar de funcionÃ¡rio
             }
 
-            // Inicialização
-            listenForChanges(); // Inicia a escuta por mudanças no Firebase
-
-            // Listeners de eventos
+            listenForChanges();
             calendarContainer.addEventListener('click', handleDayClick);
             addEmployeeBtn.addEventListener('click', handleAddEmployee);
             removeEmployeeBtn.addEventListener('click', handleRemoveEmployee);
