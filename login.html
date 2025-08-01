@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Planejamento 2025</title>
+    <style>
+        :root {
+            --cor-fundo: #0b1a33; --cor-principal: #1e3a6b;
+            --cor-destaque: #3b5998; --cor-texto: #dfe3ee;
+        }
+        body {
+            font-family: system-ui, sans-serif;
+            background-color: var(--cor-fundo);
+            color: var(--cor-texto);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .login-container {
+            background-color: var(--cor-principal);
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        h1 {
+            color: var(--cor-texto);
+            margin-bottom: 25px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 5px;
+            border: 1px solid var(--cor-texto);
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 5px;
+            border: none;
+            background-color: var(--cor-destaque);
+            color: white;
+            font-weight: bold;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #4a69ad;
+        }
+        #error-message {
+            color: #ff6347; /* Tomato Red */
+            margin-top: 15px;
+            font-weight: bold;
+            min-height: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1>Acessar Planejamento</h1>
+        <div class="input-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" required>
+        </div>
+        <div class="input-group">
+            <label for="password">Senha:</label>
+            <input type="password" id="password" required>
+        </div>
+        <button id="login-btn">Entrar</button>
+        <p id="error-message"></p>
+    </div>
+
+    <!-- SCRIPTS DO FIREBASE -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+
+    <script>
+        // COLE AQUI A MESMA CONFIGURAÇÃO DO FIREBASE DO SEU OUTRO ARQUIVO
+        const firebaseConfig = {
+          apiKey: "AIzaSyAvIeT-wJr8SpWerE7C4f0uYApQlRib4nY",
+          authDomain: "planejamento-lofty.firebaseapp.com",
+          projectId: "planejamento-lofty",
+          storageBucket: "planejamento-lofty.firebasestorage.app",
+          messagingSenderId: "698600451216",
+          appId: "1:698600451216:web:26670978ab1b707eaa3c15"
+        };
+
+        // Inicializa o Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        const loginButton = document.getElementById('login-btn');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const errorMessage = document.getElementById('error-message');
+
+        loginButton.addEventListener('click', () => {
+            const email = emailInput.value;
+            const password = passwordInput.value;
+            errorMessage.textContent = ''; // Limpa erros anteriores
+
+            if (!email || !password) {
+                errorMessage.textContent = 'Por favor, preencha todos os campos.';
+                return;
+            }
+
+            auth.signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // Login bem-sucedido, redireciona para a página principal
+                    window.location.href = 'index.html';
+                })
+                .catch((error) => {
+                    // Trata os erros de login
+                    if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+                        errorMessage.textContent = 'Email ou senha inválidos.';
+                    } else {
+                        errorMessage.textContent = 'Ocorreu um erro. Tente novamente.';
+                    }
+                    console.error("Erro de autenticação:", error);
+                });
+        });
+    </script>
+</body>
+</html>
