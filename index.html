@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Planejamento 2024-2026 (Online)</title>
+    <title>Planejamento 2024-2030 (Online)</title>
     <!-- ESTILOS (CSS) -->
     <style>
         :root {
@@ -42,10 +42,8 @@
         #app-container { padding: 15px; }
         .container { max-width: 1400px; margin: auto; }
         header { text-align: center; margin-bottom: 20px; position: relative; }
-        /* MODIFICADO: Título agora é flex para alinhar com o seletor de ano */
         .title-container { display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap; }
         .title { background-color: var(--cor-destaque); padding: 10px 20px; font-size: 2em; font-weight: bold; display: inline-block; border-radius: 8px; border: 2px solid var(--cor-texto); }
-        /* NOVO: Estilo para o seletor de ano */
         .year-selector-group { display: flex; align-items: center; gap: 10px; }
         #year-select {
             padding: 10px; font-size: 1.2em; font-weight: bold; background-color: var(--cor-fundo); color: var(--cor-texto);
@@ -162,7 +160,6 @@
     <div id="app-container" class="hidden">
         <div class="container">
             <header>
-                <!-- MODIFICADO: Título e seletor de ano agrupados -->
                 <div class="title-container">
                     <div class="title">PLANEJAMENTO</div>
                     <div class="year-selector-group">
@@ -171,6 +168,10 @@
                             <option value="2024">2024</option>
                             <option value="2025" selected>2025</option>
                             <option value="2026">2026</option>
+                            <option value="2027">2027</option>
+                            <option value="2028">2028</option>
+                            <option value="2029">2029</option>
+                            <option value="2030">2030</option>
                         </select>
                     </div>
                 </div>
@@ -227,11 +228,13 @@
             </div>
             <div class="modal-input-group">
                 <label for="modal-extra-hours">Horas Extras</label>
-                <input type="number" id="modal-extra-hours" min="0" step="0.5" placeholder="Ex: 2.5">
+                <!-- MODIFICADO: Input com datalist para sugestões e entrada manual -->
+                <input type="number" id="modal-extra-hours" list="hours-datalist" min="0" step="0.25" placeholder="Ex: 2.5">
             </div>
             <div class="modal-input-group">
                 <label for="modal-late-hours">Horas de Atraso</label>
-                <input type="number" id="modal-late-hours" min="0" step="0.5" placeholder="Ex: 1">
+                 <!-- MODIFICADO: Input com datalist para sugestões e entrada manual -->
+                <input type="number" id="modal-late-hours" list="hours-datalist" min="0" step="0.25" placeholder="Ex: 0.5">
             </div>
             <div class="modal-buttons">
                 <button id="modal-cancel-btn">Cancelar</button>
@@ -239,6 +242,9 @@
             </div>
         </div>
     </div>
+    
+    <!-- NOVO: Datalist com sugestões de tempo, não visível diretamente -->
+    <datalist id="hours-datalist"></datalist>
 
     <!-- SCRIPTS DO FIREBASE -->
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
@@ -256,7 +262,6 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        // MODIFICADO: docRef agora é uma let, definida dinamicamente
         let docRef; 
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -318,14 +323,16 @@
             function initializeAppLogic(userRole, userEmail) {
                 const isEditor = userRole === 'editor';
 
-                // NOVO: Mapeamento de feriados por ano
                 const NATIONAL_HOLIDAYS = {
                     2024: { '2024-01-01':{c:'v'},'2024-02-12':{c:'v'},'2024-02-13':{c:'v'},'2024-03-29':{c:'v'},'2024-04-21':{c:'v'},'2024-05-01':{c:'v'},'2024-05-30':{c:'v'},'2024-09-07':{c:'v'},'2024-10-12':{c:'v'},'2024-11-02':{c:'v'},'2024-11-15':{c:'v'},'2024-11-20':{c:'v'},'2024-12-25':{c:'v'} },
                     2025: { '2025-01-01':{c:'v'},'2025-03-03':{c:'v'},'2025-03-04':{c:'v'},'2025-04-18':{c:'v'},'2025-04-21':{c:'v'},'2025-05-01':{c:'v'},'2025-06-19':{c:'v'},'2025-09-07':{c:'v'},'2025-10-12':{c:'v'},'2025-11-02':{c:'v'},'2025-11-15':{c:'v'},'2025-11-20':{c:'v'},'2025-12-25':{c:'v'} },
-                    2026: { '2026-01-01':{c:'v'},'2026-02-16':{c:'v'},'2026-02-17':{c:'v'},'2026-04-03':{c:'v'},'2026-04-21':{c:'v'},'2026-05-01':{c:'v'},'2026-06-04':{c:'v'},'2026-09-07':{c:'v'},'2026-10-12':{c:'v'},'2026-11-02':{c:'v'},'2026-11-15':{c:'v'},'2026-12-25':{c:'v'} }
+                    2026: { '2026-01-01':{c:'v'},'2026-02-16':{c:'v'},'2026-02-17':{c:'v'},'2026-04-03':{c:'v'},'2026-04-21':{c:'v'},'2026-05-01':{c:'v'},'2026-06-04':{c:'v'},'2026-09-07':{c:'v'},'2026-10-12':{c:'v'},'2026-11-02':{c:'v'},'2026-11-15':{c:'v'},'2026-12-25':{c:'v'} },
+                    2027: { '2027-01-01':{c:'v'},'2027-02-08':{c:'v'},'2027-02-09':{c:'v'},'2027-03-26':{c:'v'},'2027-04-21':{c:'v'},'2027-05-01':{c:'v'},'2027-05-27':{c:'v'},'2027-09-07':{c:'v'},'2027-10-12':{c:'v'},'2027-11-02':{c:'v'},'2027-11-15':{c:'v'},'2027-12-25':{c:'v'} },
+                    2028: { '2028-01-01':{c:'v'},'2028-02-28':{c:'v'},'2028-02-29':{c:'v'},'2028-04-14':{c:'v'},'2028-04-21':{c:'v'},'2028-05-01':{c:'v'},'2028-06-15':{c:'v'},'2028-09-07':{c:'v'},'2028-10-12':{c:'v'},'2028-11-02':{c:'v'},'2028-11-15':{c:'v'},'2028-11-20':{c:'v'},'2028-12-25':{c:'v'} },
+                    2029: { '2029-01-01':{c:'v'},'2029-02-12':{c:'v'},'2029-02-13':{c:'v'},'2029-03-30':{c:'v'},'2029-04-21':{c:'v'},'2029-05-01':{c:'v'},'2029-05-31':{c:'v'},'2029-09-07':{c:'v'},'2029-10-12':{c:'v'},'2029-11-02':{c:'v'},'2029-11-15':{c:'v'},'2029-12-25':{c:'v'} },
+                    2030: { '2030-01-01':{c:'v'},'2030-03-04':{c:'v'},'2030-03-05':{c:'v'},'2030-04-19':{c:'v'},'2030-04-21':{c:'v'},'2030-05-01':{c:'v'},'2030-06-20':{c:'v'},'2030-09-07':{c:'v'},'2030-10-12':{c:'v'},'2030-11-02':{c:'v'},'2030-11-15':{c:'v'},'2030-12-25':{c:'v'} }
                 };
                 
-                // MODIFICADO: Ano é uma variável baseada no seletor
                 const yearSelect = document.getElementById('year-select');
                 let selectedYear = parseInt(yearSelect.value);
 
@@ -351,13 +358,38 @@
                 let state = { funcionarios: [], funcionarioSelecionadoId: null };
                 let localStateLoaded = false;
                 
+                // NOVO: Função para popular o datalist de horas com sugestões
+                function populateHoursDatalist() {
+                    const datalist = document.getElementById('hours-datalist');
+                    if (datalist.options.length > 0) return; // Preenche apenas uma vez
+
+                    const options = [];
+                    // Adicionar incrementos de 5 e 10 minutos
+                    for (let min = 5; min <= 55; min += 5) {
+                         options.push({ label: `${min} min`, value: (min / 60).toFixed(4) });
+                    }
+                    
+                    // Adicionar incrementos de horas e meia hora
+                    for (let h = 1; h <= 8; h++) {
+                        options.push({ label: `${h} hora${h > 1 ? 's' : ''}`, value: h });
+                        options.push({ label: `${h}h 30 min`, value: h + 0.5 });
+                    }
+
+                    options.forEach(opt => {
+                        const optionEl = document.createElement('option');
+                        optionEl.value = opt.value;
+                        optionEl.label = opt.label;
+                        datalist.appendChild(optionEl);
+                    });
+                }
+
+
                 function setupUIForRole() {
                     newEmployeeInput.disabled = !isEditor;
                     newEmployeeEmailInput.disabled = !isEditor;
                     addEmployeeBtn.disabled = !isEditor;
                     removeEmployeeBtn.disabled = !isEditor;
                     employeeSelect.disabled = !isEditor;
-                    // O seletor de ano é sempre habilitado
                     yearSelect.disabled = false; 
 
                     const viewOnlyNotice = document.getElementById('view-only-notice');
@@ -370,7 +402,6 @@
                     docRef.set(state).catch(error => console.error("Erro ao salvar no Firebase: ", error));
                 }
 
-                // MODIFICADO: Função para iniciar ou trocar o listener do Firebase
                 function listenForChanges() {
                     if (stopListeningToFirebase) { stopListeningToFirebase(); }
                     
@@ -381,16 +412,13 @@
                         if (doc.exists) {
                             state = doc.data();
                         } else {
-                            // Cria estado inicial SE for editor
                             if (isEditor) {
                                 const initialId = `func-${Date.now()}`;
                                 const holidaysForYear = NATIONAL_HOLIDAYS[selectedYear] || {};
-                                // Simplificando o objeto de feriados
                                 const initialCalendar = {};
                                 for (const date in holidaysForYear) {
                                     initialCalendar[date] = { cor: 'verde' };
                                 }
-
                                 state = {
                                     funcionarios: [{
                                         id: initialId, nome: "Meu Planejamento", email: userEmail,
@@ -400,7 +428,6 @@
                                 };
                                 saveState();
                             } else {
-                                // Se for viewer e não houver dados, estado fica vazio
                                 state = { funcionarios: [], funcionarioSelecionadoId: null };
                             }
                         }
@@ -420,13 +447,11 @@
                             data.extras = parseFloat(data.extras) || 0;
                             data.atrasos = parseFloat(data.atrasos) || 0;
                             const date = new Date(dateString + 'T00:00:00');
-                            const dayOfWeek = date.getDay(); // Domingo 0, Sábado 6
+                            const dayOfWeek = date.getDay(); 
                             const isWeekday = dayOfWeek >= 1 && dayOfWeek <= 5;
 
-                            // MODIFICADO: 'vermelho' não conta mais como folga útil
                             if (isWeekday && ['amarelo', 'laranja'].includes(data.cor)) { folgasUteis++; }
                             
-                            // Feriado ou folga no FDS
                             if (data.cor === 'verde' || (!isWeekday && ['amarelo', 'laranja', 'vermelho'].includes(data.cor))) { folgasFeriadoFDS++; }
                             
                             totalExtras += data.extras;
@@ -439,12 +464,11 @@
                     document.getElementById('summary-uteis').textContent = folgasUteis;
                     document.getElementById('summary-feriado-fds').textContent = folgasFeriadoFDS;
                     document.getElementById('summary-total').textContent = folgasUteis + folgasFeriadoFDS;
-                    document.getElementById('summary-extras').textContent = totalExtras.toFixed(1);
-                    document.getElementById('summary-atrasos').textContent = totalAtrasos.toFixed(1);
-                    saldoEl.textContent = saldoHoras.toFixed(1);
-                    saldoEl.className = 'summary-item'; // Reset classes
-                    if (saldoHoras > 0) saldoEl.classList.add('saldo-positivo');
-                    if (saldoHoras < 0) saldoEl.classList.add('saldo-negativo');
+                    document.getElementById('summary-extras').textContent = totalExtras.toFixed(2);
+                    document.getElementById('summary-atrasos').textContent = totalAtrasos.toFixed(2);
+                    saldoEl.textContent = saldoHoras.toFixed(2);
+                    saldoEl.className = ''; 
+                    saldoEl.classList.add(saldoHoras > 0 ? 'saldo-positivo' : (saldoHoras < 0 ? 'saldo-negativo' : ''));
                 }
 
 
@@ -551,8 +575,11 @@
 
                     modalTitle.textContent = `Editar Dia - ${new Date(currentlyEditingDate + 'T00:00:00').toLocaleDateString('pt-BR')}`;
                     modalColorSelect.value = data.cor || 'default';
+                    
+                    // MODIFICADO: Preenche o valor do input, ou deixa em branco para o placeholder aparecer
                     modalExtraHours.value = data.extras || '';
                     modalLateHours.value = data.atrasos || '';
+                    
                     modal.classList.remove('hidden');
                 }
 
@@ -563,6 +590,7 @@
                     if (!funcionario.calendario) { funcionario.calendario = {}; }
 
                     const newColor = modalColorSelect.value;
+                    // MODIFICADO: Pega o valor do input e converte para número
                     const newExtras = parseFloat(modalExtraHours.value) || 0;
                     const newAtrasos = parseFloat(modalLateHours.value) || 0;
 
@@ -604,25 +632,21 @@
 
                 function handleSelectEmployee() {
                     state.funcionarioSelecionadoId = employeeSelect.value;
-                    // Não salva o estado aqui, pois isso é uma preferência de visualização local.
-                    // Apenas renderiza novamente com o funcionário selecionado.
                     renderCalendar();
                     calculateAndDisplaySummaries();
                 }
 
-                // NOVO: Handler para a mudança de ano
                 function handleYearChange() {
                     localStateLoaded = false;
-                    // Limpa a interface para evitar mostrar dados antigos
                     calendarContainer.innerHTML = '<p style="text-align:center;">Carregando dados do novo ano...</p>';
                     employeeSelect.innerHTML = '';
                     listenForChanges();
                 }
                 
-                // Inicia o listener pela primeira vez
+                // NOVO: Popula o datalist na inicialização
+                populateHoursDatalist();
                 listenForChanges();
 
-                // Adiciona todos os event listeners
                 calendarContainer.addEventListener('click', handleDayClick);
                 addEmployeeBtn.addEventListener('click', handleAddEmployee);
                 removeEmployeeBtn.addEventListener('click', handleRemoveEmployee);
