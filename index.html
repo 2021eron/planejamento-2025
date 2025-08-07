@@ -55,11 +55,18 @@
         }
         .legend { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 20px 0; }
         .legend-item { padding: 8px 15px; border-radius: 5px; font-weight: bold; font-size: 0.9em; }
+
+        /* --- INÍCIO DA MODIFICAÇÃO PARA MODO NOTURNO --- */
         .legend-verde { background-color: var(--cor-verde); color: black; }
-        .legend-laranja { background-color: var(--cor-laranja); color: black; }
-        .legend-amarelo { background-color: var(--cor-amarelo); color: black; }
+        .legend-laranja, .legend-amarelo, .legend-vermelho, .legend-roxo {
+             /* Sombra para destacar o texto */
+            text-shadow: 0px 1px 2px rgba(0,0,0,0.7);
+        }
+        .legend-laranja { background-color: var(--cor-laranja); color: white; }
+        .legend-amarelo { background-color: var(--cor-amarelo); color: white; }
         .legend-vermelho { background-color: var(--cor-vermelho); color: white; }
         .legend-roxo { background-color: var(--cor-roxo); color: white; }
+        /* --- FIM DA MODIFICAÇÃO --- */
         
         .controls-container {
             display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; margin-bottom: 25px;
@@ -103,11 +110,19 @@
         .day-cell.weekend { background-color: var(--cor-rosa-fds); }
         .day-cell.valid-day.editable { cursor: pointer; }
         .day-cell.empty { background-color: transparent; }
+
+        /* --- INÍCIO DA MODIFICAÇÃO PARA MODO NOTURNO --- */
+        /* Agrupa todas as classes de cor para aplicar as melhorias de contraste */
+        .color-amarelo, .color-laranja, .color-vermelho, .color-roxo {
+            color: white !important; /* Muda o texto para branco para maior contraste */
+            text-shadow: 0px 1px 2px rgba(0,0,0,0.6); /* Adiciona sombra para separar do fundo */
+        }
         .color-verde { background-color: var(--cor-verde) !important; }
         .color-amarelo { background-color: var(--cor-amarelo) !important; }
         .color-laranja { background-color: var(--cor-laranja) !important; }
-        .color-vermelho { background-color: var(--cor-vermelho) !important; color: white !important; }
-        .color-roxo { background-color: var(--cor-roxo) !important; color: white !important; }
+        .color-vermelho { background-color: var(--cor-vermelho) !important; }
+        .color-roxo { background-color: var(--cor-roxo) !important; }
+        /* --- FIM DA MODIFICAÇÃO --- */
 
         .day-cell.has-hours::after {
             content: ''; position: absolute; top: 3px; right: 3px;
