@@ -129,18 +129,23 @@
             box-shadow: 0 5px 20px rgba(0,0,0,0.4); width: 90%; max-width: 400px;
             border: 2px solid var(--cor-destaque);
         }
-        .modal-content h3 { margin-top: 0; font-size: 1.5em; text-align: center; }
+        .modal-content h3 { margin-top: 0; font-size: 1.5em; text-align: center; margin-bottom: 25px; }
         .modal-input-group { margin-bottom: 15px; }
         .modal-input-group label { display: block; font-weight: bold; margin-bottom: 8px; }
         .modal-input-group select, .modal-input-group input {
             width: 100%; padding: 10px; border-radius: 5px; border: 1px solid var(--cor-texto);
             font-size: 1em; box-sizing: border-box; background-color: var(--cor-fundo); color: var(--cor-texto);
         }
+        
+        /* --- MUDANÇA NO CSS --- */
+        /* Garante que o texto dentro de um input desabilitado seja legível */
         .modal-input-group input:disabled, .modal-input-group select:disabled {
-            background-color: #2a4a7b !important;
-            opacity: 0.7;
+            background-color: #2a4a7b !important; /* Mantém um fundo diferente */
+            color: var(--cor-texto) !important;      /* Garante a cor do texto principal */
+            opacity: 1 !important;                 /* Remove o efeito de "apagado" */
             cursor: not-allowed;
         }
+
         .modal-buttons { display: flex; gap: 10px; justify-content: flex-end; margin-top: 25px; }
         .modal-buttons button {
             padding: 10px 20px; border-radius: 5px; border: none; font-size: 1em;
@@ -153,12 +158,6 @@
         .input-row { display: flex; gap: 10px; }
         .input-row input[type="number"] { flex: 1; }
         .input-row input[type="text"] { flex: 2; }
-
-        #modal-summary {
-            background-color: var(--cor-fundo); padding: 12px; border-radius: 5px;
-            margin-bottom: 20px; font-size: 0.95em; line-height: 1.5;
-            color: var(--cor-texto); border-left: 4px solid var(--cor-destaque);
-        }
     </style>
 </head>
 <body>
@@ -230,7 +229,7 @@
     <div id="day-editor-modal" class="hidden">
         <div class="modal-content">
             <h3 id="modal-title">Editar Dia</h3>
-            <div id="modal-summary" class="hidden"></div>
+            <!-- O div #modal-summary foi removido daqui -->
             <div class="modal-input-group">
                 <label for="modal-color-select">Status do Dia</label>
                 <select id="modal-color-select">
@@ -393,7 +392,6 @@
                 const modalCancelBtn = document.getElementById('modal-cancel-btn');
                 const modalExtraDesc = document.getElementById('modal-extra-desc');
                 const modalLateDesc = document.getElementById('modal-late-desc');
-                const modalSummary = document.getElementById('modal-summary');
                 let currentlyEditingDate = null;
                 
                 const changePasswordBtn = document.getElementById('change-password-btn');
@@ -561,10 +559,7 @@
                         for (let day = 1; day <= daysInMonth; day++) {
                             const dayCell = document.createElement('div');
                             dayCell.classList.add('day-cell', 'valid-day');
-                            
-                            // *** LINHA CORRIGIDA ADICIONADA AQUI ***
-                            // Esta linha informa aos navegadores de celular que este elemento é interativo.
-                            dayCell.setAttribute('ontouchstart', '');
+                            dayCell.setAttribute('ontouchstart', ''); // Mantém a compatibilidade de toque
 
                             dayCell.textContent = day;
                             const dateString = `${selectedYear}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -610,24 +605,9 @@
                     const entry = (funcionario?.calendario?.[currentlyEditingDate]) || {};
                     const data = typeof entry === 'string' ? { cor: entry } : entry;
                     
-                    let summaryText = [];
-                    if (data.extras > 0) {
-                        let extraInfo = `<b>Horas Extras:</b> ${data.extras}`;
-                        if (data.extras_desc) { extraInfo += ` (${data.extras_desc})`; }
-                        summaryText.push(extraInfo);
-                    }
-                    if (data.atrasos > 0) {
-                        let atrasoInfo = `<b>Atraso:</b> ${data.atrasos}`;
-                        if (data.atrasos_desc) { atrasoInfo += ` (${data.atrasos_desc})`; }
-                        summaryText.push(atrasoInfo);
-                    }
-
-                    if (summaryText.length > 0) {
-                        modalSummary.innerHTML = summaryText.join('<br>');
-                        modalSummary.classList.remove('hidden');
-                    } else {
-                        modalSummary.classList.add('hidden');
-                    }
+                    // --- MUDANÇA NO JAVASCRIPT ---
+                    // A lógica do modalSummary foi removida.
+                    // Agora, simplesmente preenchemos os valores nos campos.
 
                     modalColorSelect.value = data.cor || 'default';
                     modalExtraHours.value = data.extras || '';
@@ -635,6 +615,7 @@
                     modalExtraDesc.value = data.extras_desc || '';
                     modalLateDesc.value = data.atrasos_desc || '';
 
+                    // Habilita/desabilita os campos com base na permissão do usuário
                     const isReadOnly = !isEditor;
                     modalColorSelect.disabled = isReadOnly;
                     modalExtraHours.disabled = isReadOnly;
@@ -642,6 +623,7 @@
                     modalLateHours.disabled = isReadOnly;
                     modalLateDesc.disabled = isReadOnly;
 
+                    // Ajusta o título e os botões do modal
                     if (isReadOnly) {
                         modalTitle.textContent = `Detalhes do Dia - ${new Date(currentlyEditingDate + 'T00:00:00').toLocaleDateString('pt-BR')}`;
                         modalSaveBtn.classList.add('hidden');
