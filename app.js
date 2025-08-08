@@ -195,9 +195,9 @@ const firebaseConfig = {
                             const dayOfWeek = date.getDay(); 
                             const isWeekday = dayOfWeek >= 1 && dayOfWeek <= 5;
 
-                            if (isWeekday && ['amarelo', 'laranja'].includes(data.cor)) { folgasUteis++; }
-                            
-                            if (data.cor === 'verde' || (!isWeekday && ['amarelo', 'laranja', 'vermelho'].includes(data.cor))) { folgasFeriadoFDS++; }
+                           if (isWeekday && data.cor === 'amarelo') { folgasUteis++; }
+            
+            if (['verde', 'laranja'].includes(data.cor) || (!isWeekday && ['amarelo', 'vermelho'].includes(data.cor))) { folgasFeriadoFDS++; }
                             
                             totalExtras += data.extras;
                             totalAtrasos += data.atrasos;
