@@ -182,40 +182,41 @@ const firebaseConfig = {
                 }
                 
                 function calculateAndDisplaySummaries() {
-                    const funcionarioAtual = state.funcionarios.find(f => f.id === state.funcionarioSelecionadoId);
-                    let folgasUteis = 0, folgasFeriadoFDS = 0, totalExtras = 0, totalAtrasos = 0;
+    const funcionarioAtual = state.funcionarios.find(f => f.id === state.funcionarioSelecionadoId);
+    let folgasUteis = 0, folgasFeriadoFDS = 0, totalExtras = 0, totalAtrasos = 0;
 
-                    if (funcionarioAtual && funcionarioAtual.calendario) {
-                        for (const dateString in funcionarioAtual.calendario) {
-                            const entry = funcionarioAtual.calendario[dateString] || {};
-                            const data = typeof entry === 'string' ? { cor: entry } : entry;
-                            data.extras = parseFloat(data.extras) || 0;
-                            data.atrasos = parseFloat(data.atrasos) || 0;
-                            const date = new Date(dateString + 'T00:00:00');
-                            const dayOfWeek = date.getDay(); 
-                            const isWeekday = dayOfWeek >= 1 && dayOfWeek <= 5;
+    if (funcionarioAtual && funcionarioAtual.calendario) {
+        for (const dateString in funcionarioAtual.calendario) {
+            const entry = funcionarioAtual.calendario[dateString] || {};
+            const data = typeof entry === 'string' ? { cor: entry } : entry;
+            data.extras = parseFloat(data.extras) || 0;
+            data.atrasos = parseFloat(data.atrasos) || 0;
+            const date = new Date(dateString + 'T00:00:00');
+            const dayOfWeek = date.getDay(); 
+            const isWeekday = dayOfWeek >= 1 && dayOfWeek <= 5;
 
-                           if (isWeekday && data.cor === 'amarelo') { folgasUteis++; }
+            // CORRIGIDO: Folgas úteis agora contam apenas 'amarelo' (Emendas).
+            if (isWeekday && data.cor === 'amarelo') { folgasUteis++; }
             
+            // CORRIGIDO: Folgas de feriado agora incluem 'laranja' (Estadual) junto com o 'verde' (Nacional).
             if (['verde', 'laranja'].includes(data.cor) || (!isWeekday && ['amarelo', 'vermelho'].includes(data.cor))) { folgasFeriadoFDS++; }
-                            
-                            totalExtras += data.extras;
-                            totalAtrasos += data.atrasos;
-                        }
-                    }
-                    
-                    const saldoHoras = totalExtras - totalAtrasos;
-                    const saldoEl = document.getElementById('summary-saldo');
-                    document.getElementById('summary-uteis').textContent = folgasUteis;
-                    document.getElementById('summary-feriado-fds').textContent = folgasFeriadoFDS;
-                    document.getElementById('summary-total').textContent = folgasUteis + folgasFeriadoFDS;
-                    document.getElementById('summary-extras').textContent = totalExtras.toFixed(2);
-                    document.getElementById('summary-atrasos').textContent = totalAtrasos.toFixed(2);
-                    saldoEl.textContent = saldoHoras.toFixed(2);
-                    saldoEl.className = ''; 
-                    saldoEl.classList.add(saldoHoras > 0 ? 'saldo-positivo' : (saldoHoras < 0 ? 'saldo-negativo' : ''));
-                }
-
+            
+            totalExtras += data.extras;
+            totalAtrasos += data.atrasos;
+        }
+    }
+    
+    const saldoHoras = totalExtras - totalAtrasos;
+    const saldoEl = document.getElementById('summary-saldo');
+    document.getElementById('summary-uteis').textContent = folgasUteis;
+    document.getElementById('summary-feriado-fds').textContent = folgasFeriadoFDS;
+    document.getElementById('summary-total').textContent = folgasUteis + folgasFeriadoFDS;
+    document.getElementById('summary-extras').textContent = totalExtras.toFixed(2);
+    document.getElementById('summary-atrasos').textContent = totalAtrasos.toFixed(2);
+    saldoEl.textContent = saldoHoras.toFixed(2);
+    saldoEl.className = ''; 
+    saldoEl.classList.add(saldoHoras > 0 ? 'saldo-positivo' : (saldoHoras < 0 ? 'saldo-negativo' : ''));
+}
 
                 function renderApp() {
                     setupUIForRole(); 
