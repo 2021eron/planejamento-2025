@@ -9,8 +9,15 @@
         :root {
             --cor-fundo: #0b1a33; --cor-principal: #1e3a6b; --cor-destaque: #3b5998;
             --cor-texto: #dfe3ee; --cor-rosa-fds: #fce4e4; --cor-verde: #90ee90;
-            --cor-amarelo: #ffff00; --cor-laranja: #ffa500; --cor-vermelho: #ff6347;
-            --cor-roxo: #9370db; --cor-texto-erro: #ffcdd2;
+            --cor-texto-erro: #ffcdd2;
+            --cor-roxo: #9370db;
+            
+            /* --- INÍCIO DA MODIFICAÇÃO DE CORES --- */
+            /* Cores otimizadas para melhor visualização em modos noturnos */
+            --cor-amarelo: #FBBF24; /* Amarelo Âmbar: mais quente e visível */
+            --cor-laranja: #F97316; /* Laranja Vívido: mais forte e distinto */
+            --cor-vermelho: #EF4444; /* Vermelho Padrão: mais nítido e claro */
+            /* --- FIM DA MODIFICAÇÃO DE CORES --- */
         }
         body { font-family: system-ui, sans-serif; background-color: var(--cor-fundo); color: var(--cor-texto); margin: 0; padding: 0; }
         .hidden { display: none !important; }
@@ -56,17 +63,15 @@
         .legend { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 20px 0; }
         .legend-item { padding: 8px 15px; border-radius: 5px; font-weight: bold; font-size: 0.9em; }
 
-        /* --- INÍCIO DA MODIFICAÇÃO PARA MODO NOTURNO --- */
-        .legend-verde { background-color: var(--cor-verde); color: black; }
+        /* Estilos para texto com sombra para garantir contraste */
         .legend-laranja, .legend-amarelo, .legend-vermelho, .legend-roxo {
-             /* Sombra para destacar o texto */
             text-shadow: 0px 1px 2px rgba(0,0,0,0.7);
         }
+        .legend-verde { background-color: var(--cor-verde); color: black; }
         .legend-laranja { background-color: var(--cor-laranja); color: white; }
         .legend-amarelo { background-color: var(--cor-amarelo); color: white; }
         .legend-vermelho { background-color: var(--cor-vermelho); color: white; }
         .legend-roxo { background-color: var(--cor-roxo); color: white; }
-        /* --- FIM DA MODIFICAÇÃO --- */
         
         .controls-container {
             display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; margin-bottom: 25px;
@@ -111,18 +116,15 @@
         .day-cell.valid-day.editable { cursor: pointer; }
         .day-cell.empty { background-color: transparent; }
 
-        /* --- INÍCIO DA MODIFICAÇÃO PARA MODO NOTURNO --- */
-        /* Agrupa todas as classes de cor para aplicar as melhorias de contraste */
         .color-amarelo, .color-laranja, .color-vermelho, .color-roxo {
-            color: white !important; /* Muda o texto para branco para maior contraste */
-            text-shadow: 0px 1px 2px rgba(0,0,0,0.6); /* Adiciona sombra para separar do fundo */
+            color: white !important;
+            text-shadow: 0px 1px 2px rgba(0,0,0,0.6);
         }
         .color-verde { background-color: var(--cor-verde) !important; }
         .color-amarelo { background-color: var(--cor-amarelo) !important; }
         .color-laranja { background-color: var(--cor-laranja) !important; }
         .color-vermelho { background-color: var(--cor-vermelho) !important; }
         .color-roxo { background-color: var(--cor-roxo) !important; }
-        /* --- FIM DA MODIFICAÇÃO --- */
 
         .day-cell.has-hours::after {
             content: ''; position: absolute; top: 3px; right: 3px;
@@ -373,18 +375,15 @@
                 let state = { funcionarios: [], funcionarioSelecionadoId: null };
                 let localStateLoaded = false;
                 
-                // NOVO: Função para popular o datalist de horas com sugestões
                 function populateHoursDatalist() {
                     const datalist = document.getElementById('hours-datalist');
-                    if (datalist.options.length > 0) return; // Preenche apenas uma vez
+                    if (datalist.options.length > 0) return; 
 
                     const options = [];
-                    // Adicionar incrementos de 5 e 10 minutos
                     for (let min = 5; min <= 55; min += 5) {
                          options.push({ label: `${min} min`, value: (min / 60).toFixed(4) });
                     }
                     
-                    // Adicionar incrementos de horas e meia hora
                     for (let h = 1; h <= 8; h++) {
                         options.push({ label: `${h} hora${h > 1 ? 's' : ''}`, value: h });
                         options.push({ label: `${h}h 30 min`, value: h + 0.5 });
@@ -591,7 +590,6 @@
                     modalTitle.textContent = `Editar Dia - ${new Date(currentlyEditingDate + 'T00:00:00').toLocaleDateString('pt-BR')}`;
                     modalColorSelect.value = data.cor || 'default';
                     
-                    // MODIFICADO: Preenche o valor do input, ou deixa em branco para o placeholder aparecer
                     modalExtraHours.value = data.extras || '';
                     modalLateHours.value = data.atrasos || '';
                     
@@ -605,7 +603,6 @@
                     if (!funcionario.calendario) { funcionario.calendario = {}; }
 
                     const newColor = modalColorSelect.value;
-                    // MODIFICADO: Pega o valor do input e converte para número
                     const newExtras = parseFloat(modalExtraHours.value) || 0;
                     const newAtrasos = parseFloat(modalLateHours.value) || 0;
 
@@ -658,7 +655,6 @@
                     listenForChanges();
                 }
                 
-                // NOVO: Popula o datalist na inicialização
                 populateHoursDatalist();
                 listenForChanges();
 
