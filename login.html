@@ -103,7 +103,6 @@
         .day-cell { background-color: white; color: black; font-size: 0.9em; height: 35px; position: relative; }
         .day-cell.weekend { background-color: var(--cor-rosa-fds); }
         
-        /* --- CSS CORRIGIDO: Garante que todos os dias válidos sejam clicáveis em qualquer dispositivo --- */
         .day-cell.valid-day { cursor: pointer; }
         .day-cell.empty { background-color: transparent; cursor: default; }
 
@@ -563,6 +562,10 @@
                             const dayCell = document.createElement('div');
                             dayCell.classList.add('day-cell', 'valid-day');
                             
+                            // *** LINHA CORRIGIDA ADICIONADA AQUI ***
+                            // Esta linha informa aos navegadores de celular que este elemento é interativo.
+                            dayCell.setAttribute('ontouchstart', '');
+
                             dayCell.textContent = day;
                             const dateString = `${selectedYear}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                             dayCell.dataset.date = dateString;
