@@ -7,10 +7,20 @@
     <!-- ESTILOS (CSS) -->
     <style>
         :root {
-            --cor-fundo: #0b1a33; --cor-principal: #1e3a6b; --cor-destaque: #3b5998;
-            --cor-texto: #dfe3ee; --cor-rosa-fds: #fce4e4; --cor-verde: #90ee90;
-            --cor-amarelo: #ffff00; --cor-laranja: #ffa500; --cor-vermelho: #ff6347;
-            --cor-roxo: #9370db; --cor-texto-erro: #ffcdd2;
+            --cor-fundo: #0b1a33; 
+            --cor-principal: #1e3a6b; 
+            --cor-destaque: #3b5998;
+            --cor-texto: #dfe3ee; 
+            --cor-rosa-fds: #fce4e4; 
+            --cor-verde: #90ee90;
+            
+            /* MODIFICADO: Cores ajustadas para melhor visibilidade em modo escuro */
+            --cor-amarelo: #FFD700; /* Amarelo Ouro - Mais rico que o puro */
+            --cor-laranja: #FF9800; /* Laranja Vibrante */
+            --cor-vermelho: #F44336; /* Vermelho Forte */
+            
+            --cor-roxo: #9370db; 
+            --cor-texto-erro: #ffcdd2;
         }
         body { font-family: system-ui, sans-serif; background-color: var(--cor-fundo); color: var(--cor-texto); margin: 0; padding: 0; }
         .hidden { display: none !important; }
@@ -50,20 +60,18 @@
             border: 2px solid var(--cor-texto); border-radius: 8px; cursor: pointer;
         }
         
-        /* NOVO: Estilo para o container dos botões do cabeçalho */
         .header-actions {
             display: flex;
             align-items: center;
             gap: 10px;
         }
         
-        /* MODIFICADO: Estilo unificado para os botões e remoção do posicionamento absoluto */
         #logout-btn, #change-password-btn {
             background-color: var(--cor-vermelho); color: white;
             border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;
         }
         #change-password-btn {
-            background-color: #6c757d; /* Cinza para diferenciar */
+            background-color: #6c757d;
         }
 
         .legend { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 20px 0; }
@@ -110,24 +118,26 @@
         .month-container { flex: 1 1 300px; min-width: 300px; max-width: 400px; }
         .month-title { text-align: center; font-size: 1.2em; font-weight: bold; color: var(--cor-texto); margin-bottom: 10px; }
         .month-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
-        .header-cell, .day-cell { display: flex; align-items: center; justify-content: center; padding: 5px; border-radius: 4px; }
+        .header-cell, .day-cell { display: flex; align-items: center; justify-content: center; padding: 5px; border-radius: 4px; box-sizing: border-box; /* Adicionado para borda funcionar bem */ }
         .header-cell { background-color: var(--cor-principal); font-weight: bold; font-size: 0.8em; }
         .day-cell { background-color: white; color: black; font-size: 0.9em; height: 35px; position: relative; }
         .day-cell.weekend { background-color: var(--cor-rosa-fds); }
         .day-cell.valid-day.editable { cursor: pointer; }
         .day-cell.empty { background-color: transparent; }
-        .color-verde { background-color: var(--cor-verde) !important; }
-        .color-amarelo { background-color: var(--cor-amarelo) !important; }
-        .color-laranja { background-color: var(--cor-laranja) !important; }
-        .color-vermelho { background-color: var(--cor-vermelho) !important; color: white !important; }
-        .color-roxo { background-color: var(--cor-roxo) !important; color: white !important; }
+        
+        /* MODIFICADO: Estilos de cor agora incluem uma borda para melhor destaque */
+        .color-verde { background-color: var(--cor-verde) !important; border: 2px solid rgba(255, 255, 255, 0.7); }
+        .color-amarelo { background-color: var(--cor-amarelo) !important; color: black !important; border: 2px solid rgba(255, 255, 255, 0.7); }
+        .color-laranja { background-color: var(--cor-laranja) !important; color: black !important; border: 2px solid rgba(255, 255, 255, 0.7); }
+        .color-vermelho { background-color: var(--cor-vermelho) !important; color: white !important; border: 2px solid rgba(255, 255, 255, 0.7); }
+        .color-roxo { background-color: var(--cor-roxo) !important; color: white !important; border: 2px solid rgba(255, 255, 255, 0.7); }
 
         .day-cell.has-hours::after {
             content: ''; position: absolute; top: 3px; right: 3px;
             width: 6px; height: 6px; background-color: #0b1a33; border-radius: 50%;
         }
 
-        /* ===== ESTILOS DO MODAL DE EDIÃÇÃO DO DIA ===== */
+        /* ===== ESTILOS DO MODAL DE EDIÇÃO DO DIA ===== */
         #day-editor-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(0, 0, 0, 0.6); z-index: 2000;
@@ -173,7 +183,6 @@
     <div id="app-container" class="hidden">
         <div class="container">
             <header>
-                <!-- MODIFICADO: Estrutura do cabeçalho para melhor responsividade -->
                 <div class="title-container">
                     <div class="title">PLANEJAMENTO</div>
                     <div class="year-selector-group">
@@ -188,7 +197,6 @@
                             <option value="2030">2030</option>
                         </select>
                     </div>
-                    <!-- NOVO: Container para os botões -->
                     <div class="header-actions">
                          <button id="change-password-btn">Mudar Senha</button>
                          <button id="logout-btn">Sair</button>
@@ -361,7 +369,6 @@
                 const addEmployeeBtn = document.getElementById('add-employee-btn');
                 const removeEmployeeBtn = document.getElementById('remove-employee-btn');
                 
-                // NOVO: Referência ao botão de mudar senha
                 const changePasswordBtn = document.getElementById('change-password-btn');
 
                 const modal = document.getElementById('day-editor-modal');
@@ -656,7 +663,6 @@
                     listenForChanges();
                 }
                 
-                // NOVO: Função para alterar a senha
                 function handleChangePassword() {
                     const newPassword = prompt("Digite sua nova senha (mínimo 6 caracteres):");
                     if (newPassword && newPassword.length >= 6) {
@@ -685,7 +691,6 @@
                 modalSaveBtn.addEventListener('click', handleSaveDay);
                 modalCancelBtn.addEventListener('click', () => modal.classList.add('hidden'));
                 
-                // NOVO: Adiciona o listener de evento para o novo botão
                 changePasswordBtn.addEventListener('click', handleChangePassword);
             }
         });
