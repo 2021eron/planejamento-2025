@@ -56,10 +56,14 @@
             padding: 10px; font-size: 1.2em; font-weight: bold; background-color: var(--cor-fundo); color: var(--cor-texto);
             border: 2px solid var(--cor-texto); border-radius: 8px; cursor: pointer;
         }
-        #logout-btn {
-            position: absolute; top: 5px; right: 5px; background-color: var(--cor-vermelho); color: white;
-            border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;
+        /* --- NOVO: Container para botões de usuário --- */
+        .user-actions { position: absolute; top: 5px; right: 5px; display: flex; gap: 10px; }
+        .user-actions button {
+            background-color: var(--cor-vermelho); color: white; border: none; padding: 8px 15px;
+            border-radius: 5px; cursor: pointer; font-weight: bold;
         }
+        .user-actions #change-password-btn { background-color: var(--cor-destaque); }
+        
         .legend { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 20px 0; }
         .legend-item { padding: 8px 15px; border-radius: 5px; font-weight: bold; font-size: 0.9em; }
 
@@ -131,8 +135,8 @@
             width: 6px; height: 6px; background-color: #0b1a33; border-radius: 50%;
         }
 
-        /* ===== ESTILOS DO MODAL DE EDIÇÃO DO DIA ===== */
-        #day-editor-modal {
+        /* ===== ESTILOS DOS MODAIS ===== */
+        #day-editor-modal, #change-password-modal { /* Aplicando estilo a ambos os modais */
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(0, 0, 0, 0.6); z-index: 2000;
             display: flex; align-items: center; justify-content: center;
@@ -155,8 +159,8 @@
             font-weight: bold; cursor: pointer; transition: opacity 0.2s;
         }
         .modal-buttons button:hover { opacity: 0.9; }
-        #modal-save-btn { background-color: var(--cor-destaque); color: white; }
-        #modal-cancel-btn { background-color: #6c757d; color: white; }
+        #modal-save-btn, #password-save-btn { background-color: var(--cor-destaque); color: white; }
+        #modal-cancel-btn, #password-cancel-btn { background-color: #6c757d; color: white; }
     </style>
 </head>
 <body>
@@ -192,7 +196,11 @@
                         </select>
                     </div>
                 </div>
-                <button id="logout-btn">Sair</button>
+                <!-- NOVO: Container para os botões de ação do usuário -->
+                <div class="user-actions">
+                    <button id="change-password-btn">Alterar Senha</button>
+                    <button id="logout-btn">Sair</button>
+                </div>
                 <div class="legend">
                     <div class="legend-item legend-verde">Feriados Nacionais</div>
                     <div class="legend-item legend-laranja">Feriados Estaduais</div>
@@ -245,12 +253,10 @@
             </div>
             <div class="modal-input-group">
                 <label for="modal-extra-hours">Horas Extras</label>
-                <!-- MODIFICADO: Input com datalist para sugestões e entrada manual -->
                 <input type="number" id="modal-extra-hours" list="hours-datalist" min="0" step="0.25" placeholder="Ex: 2.5">
             </div>
             <div class="modal-input-group">
                 <label for="modal-late-hours">Horas de Atraso</label>
-                 <!-- MODIFICADO: Input com datalist para sugestões e entrada manual -->
                 <input type="number" id="modal-late-hours" list="hours-datalist" min="0" step="0.25" placeholder="Ex: 0.5">
             </div>
             <div class="modal-buttons">
@@ -260,7 +266,26 @@
         </div>
     </div>
     
-    <!-- NOVO: Datalist com sugestões de tempo, não visível diretamente -->
+    <!-- NOVO: MODAL PARA ALTERAR A SENHA -->
+    <div id="change-password-modal" class="hidden">
+        <div class="modal-content">
+            <h3>Alterar Senha</h3>
+            <div class="modal-input-group">
+                <label for="new-password">Nova Senha</label>
+                <input type="password" id="new-password" placeholder="Mínimo de 6 caracteres" required>
+            </div>
+             <div class="modal-input-group">
+                <label for="confirm-password">Confirmar Nova Senha</label>
+                <input type="password" id="confirm-password" required>
+            </div>
+            <p id="password-change-error" style="color: var(--cor-texto-erro); height: 20px; font-weight:bold;"></p>
+            <div class="modal-buttons">
+                <button id="password-cancel-btn">Cancelar</button>
+                <button id="password-save-btn">Salvar Nova Senha</button>
+            </div>
+        </div>
+    </div>
+
     <datalist id="hours-datalist"></datalist>
 
     <!-- SCRIPTS DO FIREBASE -->
@@ -339,7 +364,7 @@
 
             function initializeAppLogic(userRole, userEmail) {
                 const isEditor = userRole === 'editor';
-
+                // ... (seu código NATIONAL_HOLIDAYS, yearSelect, MONTHS, etc. continua o mesmo)
                 const NATIONAL_HOLIDAYS = {
                     2024: { '2024-01-01':{c:'v'},'2024-02-12':{c:'v'},'2024-02-13':{c:'v'},'2024-03-29':{c:'v'},'2024-04-21':{c:'v'},'2024-05-01':{c:'v'},'2024-05-30':{c:'v'},'2024-09-07':{c:'v'},'2024-10-12':{c:'v'},'2024-11-02':{c:'v'},'2024-11-15':{c:'v'},'2024-11-20':{c:'v'},'2024-12-25':{c:'v'} },
                     2025: { '2025-01-01':{c:'v'},'2025-03-03':{c:'v'},'2025-03-04':{c:'v'},'2025-04-18':{c:'v'},'2025-04-21':{c:'v'},'2025-05-01':{c:'v'},'2025-06-19':{c:'v'},'2025-09-07':{c:'v'},'2025-10-12':{c:'v'},'2025-11-02':{c:'v'},'2025-11-15':{c:'v'},'2025-11-20':{c:'v'},'2025-12-25':{c:'v'} },
@@ -371,9 +396,22 @@
                 const modalSaveBtn = document.getElementById('modal-save-btn');
                 const modalCancelBtn = document.getElementById('modal-cancel-btn');
                 let currentlyEditingDate = null;
+                
+                // --- NOVO: Referências para o modal de alteração de senha ---
+                const changePasswordBtn = document.getElementById('change-password-btn');
+                const changePasswordModal = document.getElementById('change-password-modal');
+                const newPasswordInput = document.getElementById('new-password');
+                const confirmPasswordInput = document.getElementById('confirm-password');
+                const passwordSaveBtn = document.getElementById('password-save-btn');
+                const passwordCancelBtn = document.getElementById('password-cancel-btn');
+                const passwordChangeError = document.getElementById('password-change-error');
+                // --- FIM DAS NOVAS REFERÊNCIAS ---
 
                 let state = { funcionarios: [], funcionarioSelecionadoId: null };
                 let localStateLoaded = false;
+                
+                // ... (O restante das suas funções: populateHoursDatalist, setupUIForRole, saveState, etc.)
+                // As funções abaixo permanecem as mesmas
                 
                 function populateHoursDatalist() {
                     const datalist = document.getElementById('hours-datalist');
@@ -657,6 +695,51 @@
                 
                 populateHoursDatalist();
                 listenForChanges();
+                
+                // --- NOVO: Lógica para o modal de alteração de senha ---
+                changePasswordBtn.addEventListener('click', () => {
+                    newPasswordInput.value = '';
+                    confirmPasswordInput.value = '';
+                    passwordChangeError.textContent = '';
+                    changePasswordModal.classList.remove('hidden');
+                });
+
+                passwordCancelBtn.addEventListener('click', () => {
+                    changePasswordModal.classList.add('hidden');
+                });
+
+                passwordSaveBtn.addEventListener('click', () => {
+                    const newPassword = newPasswordInput.value;
+                    const confirmPassword = confirmPasswordInput.value;
+                    passwordChangeError.textContent = '';
+
+                    if (newPassword.length < 6) {
+                        passwordChangeError.textContent = 'A senha deve ter no mínimo 6 caracteres.';
+                        return;
+                    }
+                    if (newPassword !== confirmPassword) {
+                        passwordChangeError.textContent = 'As senhas não conferem.';
+                        return;
+                    }
+
+                    const user = firebase.auth().currentUser;
+                    if (user) {
+                        passwordSaveBtn.disabled = true; // Desabilita o botão para evitar cliques duplos
+                        passwordChangeError.textContent = 'Alterando...';
+
+                        user.updatePassword(newPassword).then(() => {
+                            changePasswordModal.classList.add('hidden');
+                            alert('Senha alterada com sucesso!');
+                            passwordSaveBtn.disabled = false;
+                        }).catch((error) => {
+                            console.error("Erro ao alterar a senha:", error);
+                            passwordChangeError.textContent = 'Erro: Tente sair e logar novamente.';
+                            passwordSaveBtn.disabled = false;
+                        });
+                    }
+                });
+                // --- FIM DA NOVA LÓGICA ---
+
 
                 calendarContainer.addEventListener('click', handleDayClick);
                 addEmployeeBtn.addEventListener('click', handleAddEmployee);
