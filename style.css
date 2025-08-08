@@ -5,7 +5,7 @@
     --cor-texto: #dfe3ee; 
     --cor-rosa-fds: #fce4e4; 
     
-    /* Cores Vibrantes - Agora usadas principalmente para texto e bordas */
+    /* Cores Vibrantes */
     --cor-verde: #8BC34A;
     --cor-amarelo: #FFEE58; 
     --cor-laranja: #FFA726; 
@@ -114,23 +114,41 @@ header { text-align: center; margin-bottom: 20px; }
 .day-cell.empty { background-color: transparent; border: none; }
 
 /*
-  ===== CORREÇÃO DEFINITIVA DO DESIGN DOS DIAS DO CALENDÁRIO =====
-  Aplicando o mesmo princípio da legenda: fundo escuro com texto e borda coloridos.
+  ===== NOVO DESIGN DOS DIAS DO CALENDÁRIO =====
+  Aplicando fundo sólido colorido para melhorar a legibilidade,
+  conforme solicitado e visto na imagem de exemplo.
 */
-.day-cell.color-verde,
-.day-cell.color-amarelo,
-.day-cell.color-laranja,
-.day-cell.color-vermelho,
+.day-cell.color-verde {
+    background-color: var(--cor-verde);
+    color: var(--cor-fundo); /* Texto escuro para bom contraste */
+    font-weight: bold;
+    border: none;
+}
+.day-cell.color-laranja {
+    background-color: var(--cor-laranja);
+    color: var(--cor-fundo); /* Texto escuro para bom contraste */
+    font-weight: bold;
+    border: none;
+}
+.day-cell.color-amarelo {
+    background-color: var(--cor-amarelo);
+    color: var(--cor-fundo); /* Texto escuro para bom contraste */
+    font-weight: bold;
+    border: none;
+}
+.day-cell.color-vermelho {
+    background-color: var(--cor-vermelho);
+    color: var(--cor-texto); /* Texto claro para bom contraste */
+    font-weight: bold;
+    border: none;
+}
 .day-cell.color-roxo {
-    background-color: var(--cor-principal) !important; /* Fundo escuro padrão */
-    font-weight: bold; /* Deixa o número mais destacado */
+    background-color: var(--cor-roxo);
+    color: var(--cor-texto); /* Texto claro para bom contraste */
+    font-weight: bold;
+    border: none;
 }
 
-.day-cell.color-verde { color: var(--cor-verde) !important; border: 2px solid var(--cor-verde); }
-.day-cell.color-amarelo { color: var(--cor-amarelo) !important; border: 2px solid var(--cor-amarelo); }
-.day-cell.color-laranja { color: var(--cor-laranja) !important; border: 2px solid var(--cor-laranja); }
-.day-cell.color-vermelho { color: var(--cor-vermelho) !important; border: 2px solid var(--cor-vermelho); }
-.day-cell.color-roxo { color: var(--cor-roxo) !important; border: 2px solid var(--cor-roxo); }
 
 .day-cell.has-hours::after {
     content: ''; position: absolute; top: 3px; right: 3px;
