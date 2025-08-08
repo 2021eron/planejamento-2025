@@ -102,8 +102,9 @@
         .header-cell { background-color: var(--cor-principal); font-weight: bold; font-size: 0.8em; }
         .day-cell { background-color: white; color: black; font-size: 0.9em; height: 35px; position: relative; }
         .day-cell.weekend { background-color: var(--cor-rosa-fds); }
-        .day-cell.valid-day.editable { cursor: pointer; }
-        .day-cell.empty { background-color: transparent; }
+        /* --- CSS MODIFICADO: Cursor de ponteiro para todos os dias válidos --- */
+        .day-cell.valid-day { cursor: pointer; }
+        .day-cell.empty { background-color: transparent; cursor: default; }
 
         .color-amarelo, .color-laranja, .color-vermelho, .color-roxo { color: white !important; text-shadow: 0px 1px 2px rgba(0,0,0,0.6); }
         .color-verde { background-color: var(--cor-verde) !important; }
@@ -135,6 +136,13 @@
             width: 100%; padding: 10px; border-radius: 5px; border: 1px solid var(--cor-texto);
             font-size: 1em; box-sizing: border-box; background-color: var(--cor-fundo); color: var(--cor-texto);
         }
+        /* --- CSS NOVO: Estilo para campos desabilitados no modal --- */
+        .modal-input-group input:disabled, .modal-input-group select:disabled {
+            background-color: #2a4a7b !important; /* Um tom diferente para indicar que está desabilitado */
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
         .modal-buttons { display: flex; gap: 10px; justify-content: flex-end; margin-top: 25px; }
         .modal-buttons button {
             padding: 10px 20px; border-radius: 5px; border: none; font-size: 1em;
@@ -148,19 +156,11 @@
         .input-row input[type="number"] { flex: 1; }
         .input-row input[type="text"] { flex: 2; }
 
-        /* --- CSS NOVO: Estilo para o resumo no modal --- */
         #modal-summary {
-            background-color: var(--cor-fundo);
-            padding: 12px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            font-size: 0.95em;
-            line-height: 1.5;
-            color: var(--cor-texto);
-            border-left: 4px solid var(--cor-destaque);
+            background-color: var(--cor-fundo); padding: 12px; border-radius: 5px;
+            margin-bottom: 20px; font-size: 0.95em; line-height: 1.5;
+            color: var(--cor-texto); border-left: 4px solid var(--cor-destaque);
         }
-        /* --- FIM DO CSS NOVO --- */
-
     </style>
 </head>
 <body>
@@ -232,11 +232,7 @@
     <div id="day-editor-modal" class="hidden">
         <div class="modal-content">
             <h3 id="modal-title">Editar Dia</h3>
-            
-            <!-- --- HTML NOVO: Container para o resumo --- -->
             <div id="modal-summary" class="hidden"></div>
-            <!-- --- FIM DO HTML NOVO --- -->
-
             <div class="modal-input-group">
                 <label for="modal-color-select">Status do Dia</label>
                 <select id="modal-color-select">
@@ -399,8 +395,6 @@
                 const modalCancelBtn = document.getElementById('modal-cancel-btn');
                 const modalExtraDesc = document.getElementById('modal-extra-desc');
                 const modalLateDesc = document.getElementById('modal-late-desc');
-
-                // --- JS NOVO: Referência para o container de resumo no modal ---
                 const modalSummary = document.getElementById('modal-summary');
                 let currentlyEditingDate = null;
                 
@@ -569,7 +563,6 @@
                         for (let day = 1; day <= daysInMonth; day++) {
                             const dayCell = document.createElement('div');
                             dayCell.classList.add('day-cell', 'valid-day');
-                            if (isEditor) { dayCell.classList.add('editable'); }
                             
                             dayCell.textContent = day;
                             const dateString = `${selectedYear}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -606,8 +599,8 @@
                     });
                 }
                 
+                // --- JS MODIFICADO: Função handleDayClick atualizada ---
                 function handleDayClick(event) {
-                    if (!isEditor) return; 
                     const cell = event.target.closest('.valid-day');
                     if (!cell || !state.funcionarioSelecionadoId) return;
 
@@ -615,8 +608,13 @@
                     const funcionario = state.funcionarios.find(f => f.id === state.funcionarioSelecionadoId);
                     const entry = (funcionario?.calendario?.[currentlyEditingDate]) || {};
                     const data = typeof entry === 'string' ? { cor: entry } : entry;
+                    
+                    // Para visualizadores, só abrir se houver algo para ver
+                    if (!isEditor && Object.keys(entry).length === 0) {
+                        return;
+                    }
 
-                    // --- JS MODIFICADO: Lógica para exibir o resumo no modal ---
+                    // Preenche o resumo do modal para todos os usuários
                     let summaryText = [];
                     if (data.extras > 0) {
                         let extraInfo = `<b>Horas Extras:</b> ${data.extras}`;
@@ -635,14 +633,31 @@
                     } else {
                         modalSummary.classList.add('hidden');
                     }
-                    // --- FIM DA MODIFICAÇÃO ---
 
-                    modalTitle.textContent = `Editar Dia - ${new Date(currentlyEditingDate + 'T00:00:00').toLocaleDateString('pt-BR')}`;
+                    // Preenche os campos do modal
+                    modalTitle.textContent = `Detalhes do Dia - ${new Date(currentlyEditingDate + 'T00:00:00').toLocaleDateString('pt-BR')}`;
                     modalColorSelect.value = data.cor || 'default';
                     modalExtraHours.value = data.extras || '';
                     modalLateHours.value = data.atrasos || '';
                     modalExtraDesc.value = data.extras_desc || '';
                     modalLateDesc.value = data.atrasos_desc || '';
+
+                    // Configura o modal com base na permissão do usuário
+                    const isReadOnly = !isEditor;
+                    modalColorSelect.disabled = isReadOnly;
+                    modalExtraHours.disabled = isReadOnly;
+                    modalExtraDesc.disabled = isReadOnly;
+                    modalLateHours.disabled = isReadOnly;
+                    modalLateDesc.disabled = isReadOnly;
+
+                    if (isReadOnly) {
+                        modalSaveBtn.classList.add('hidden');
+                        modalCancelBtn.textContent = 'Fechar';
+                    } else {
+                        modalTitle.textContent = `Editar Dia - ${new Date(currentlyEditingDate + 'T00:00:00').toLocaleDateString('pt-BR')}`;
+                        modalSaveBtn.classList.remove('hidden');
+                        modalCancelBtn.textContent = 'Cancelar';
+                    }
                     
                     modal.classList.remove('hidden');
                 }
@@ -659,7 +674,7 @@
                     const newExtrasDesc = modalExtraDesc.value.trim();
                     const newAtrasosDesc = modalLateDesc.value.trim();
 
-                    if (newColor === 'default' && newExtras === 0 && newAtrasos === 0) {
+                    if (newColor === 'default' && newExtras === 0 && newAtrasos === 0 && !newExtrasDesc && !newAtrasosDesc) {
                         delete funcionario.calendario[currentlyEditingDate];
                     } else {
                         funcionario.calendario[currentlyEditingDate] = { 
