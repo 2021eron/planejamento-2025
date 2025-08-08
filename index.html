@@ -79,7 +79,7 @@
         </div>
     </div>
 
-    <!-- MODAL PARA EDITAR O DIA -->
+    <!-- MODAL PARA EDITAR O DIA (MODIFICADO) -->
     <div id="day-editor-modal" class="hidden">
         <div class="modal-content">
             <h3 id="modal-title">Editar Dia</h3>
@@ -94,13 +94,27 @@
                     <option value="roxo">Afastado</option>
                 </select>
             </div>
-            <div class="modal-input-group">
-                <label for="modal-extra-hours">Horas Extras</label>
-                <input type="number" id="modal-extra-hours" list="hours-datalist" min="0" step="0.25" placeholder="Ex: 2.5">
+             <!-- GRUPO HORAS EXTRAS COM OBSERVAÇÃO -->
+            <div class="modal-input-group modal-input-group-combined">
+                <div class="input-item">
+                    <label for="modal-extra-hours">Horas Extras</label>
+                    <input type="number" id="modal-extra-hours" list="hours-datalist" min="0" step="0.25" placeholder="Ex: 2.5">
+                </div>
+                <div class="input-item">
+                    <label for="modal-extra-hours-obs">Observação</label>
+                    <input type="text" id="modal-extra-hours-obs" placeholder="Pequena anotação">
+                </div>
             </div>
-            <div class="modal-input-group">
-                <label for="modal-late-hours">Horas de Atraso</label>
-                <input type="number" id="modal-late-hours" list="hours-datalist" min="0" step="0.25" placeholder="Ex: 0.5">
+            <!-- GRUPO HORAS ATRASO COM OBSERVAÇÃO -->
+            <div class="modal-input-group modal-input-group-combined">
+                <div class="input-item">
+                    <label for="modal-late-hours">Horas de Atraso</label>
+                    <input type="number" id="modal-late-hours" list="hours-datalist" min="0" step="0.25" placeholder="Ex: 0.5">
+                </div>
+                <div class="input-item">
+                    <label for="modal-late-hours-obs">Observação</label>
+                    <input type="text" id="modal-late-hours-obs" placeholder="Pequena anotação">
+                </div>
             </div>
             <div class="modal-buttons">
                 <button id="modal-cancel-btn">Cancelar</button>
@@ -109,6 +123,9 @@
         </div>
     </div>
     
+    <!-- NOVO: ELEMENTO PARA O TOOLTIP DE INFORMAÇÕES -->
+    <div id="day-tooltip" class="hidden"></div>
+
     <datalist id="hours-datalist"></datalist>
 
     <!-- SCRIPTS DO FIREBASE -->
@@ -116,6 +133,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 
-            <script src="app.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
