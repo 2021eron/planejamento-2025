@@ -102,7 +102,8 @@
         .header-cell { background-color: var(--cor-principal); font-weight: bold; font-size: 0.8em; }
         .day-cell { background-color: white; color: black; font-size: 0.9em; height: 35px; position: relative; }
         .day-cell.weekend { background-color: var(--cor-rosa-fds); }
-        /* --- CSS MODIFICADO: Cursor de ponteiro para todos os dias válidos --- */
+        
+        /* --- CSS CORRIGIDO: Garante que todos os dias válidos sejam clicáveis em qualquer dispositivo --- */
         .day-cell.valid-day { cursor: pointer; }
         .day-cell.empty { background-color: transparent; cursor: default; }
 
@@ -136,13 +137,11 @@
             width: 100%; padding: 10px; border-radius: 5px; border: 1px solid var(--cor-texto);
             font-size: 1em; box-sizing: border-box; background-color: var(--cor-fundo); color: var(--cor-texto);
         }
-        /* --- CSS NOVO: Estilo para campos desabilitados no modal --- */
         .modal-input-group input:disabled, .modal-input-group select:disabled {
-            background-color: #2a4a7b !important; /* Um tom diferente para indicar que está desabilitado */
+            background-color: #2a4a7b !important;
             opacity: 0.7;
             cursor: not-allowed;
         }
-
         .modal-buttons { display: flex; gap: 10px; justify-content: flex-end; margin-top: 25px; }
         .modal-buttons button {
             padding: 10px 20px; border-radius: 5px; border: none; font-size: 1em;
@@ -599,7 +598,6 @@
                     });
                 }
                 
-                // --- JS MODIFICADO: Função handleDayClick atualizada ---
                 function handleDayClick(event) {
                     const cell = event.target.closest('.valid-day');
                     if (!cell || !state.funcionarioSelecionadoId) return;
@@ -609,12 +607,6 @@
                     const entry = (funcionario?.calendario?.[currentlyEditingDate]) || {};
                     const data = typeof entry === 'string' ? { cor: entry } : entry;
                     
-                    // Para visualizadores, só abrir se houver algo para ver
-                    if (!isEditor && Object.keys(entry).length === 0) {
-                        return;
-                    }
-
-                    // Preenche o resumo do modal para todos os usuários
                     let summaryText = [];
                     if (data.extras > 0) {
                         let extraInfo = `<b>Horas Extras:</b> ${data.extras}`;
@@ -634,15 +626,12 @@
                         modalSummary.classList.add('hidden');
                     }
 
-                    // Preenche os campos do modal
-                    modalTitle.textContent = `Detalhes do Dia - ${new Date(currentlyEditingDate + 'T00:00:00').toLocaleDateString('pt-BR')}`;
                     modalColorSelect.value = data.cor || 'default';
                     modalExtraHours.value = data.extras || '';
                     modalLateHours.value = data.atrasos || '';
                     modalExtraDesc.value = data.extras_desc || '';
                     modalLateDesc.value = data.atrasos_desc || '';
 
-                    // Configura o modal com base na permissão do usuário
                     const isReadOnly = !isEditor;
                     modalColorSelect.disabled = isReadOnly;
                     modalExtraHours.disabled = isReadOnly;
@@ -651,6 +640,7 @@
                     modalLateDesc.disabled = isReadOnly;
 
                     if (isReadOnly) {
+                        modalTitle.textContent = `Detalhes do Dia - ${new Date(currentlyEditingDate + 'T00:00:00').toLocaleDateString('pt-BR')}`;
                         modalSaveBtn.classList.add('hidden');
                         modalCancelBtn.textContent = 'Fechar';
                     } else {
