@@ -9,15 +9,8 @@
         :root {
             --cor-fundo: #0b1a33; --cor-principal: #1e3a6b; --cor-destaque: #3b5998;
             --cor-texto: #dfe3ee; --cor-rosa-fds: #fce4e4; --cor-verde: #90ee90;
-            --cor-texto-erro: #ffcdd2;
-            --cor-roxo: #9370db;
-            
-            /* --- INÍCIO DA MODIFICAÇÃO DE CORES --- */
-            /* Cores otimizadas para melhor visualização em modos noturnos */
-            --cor-amarelo: #FBBF24; /* Amarelo Âmbar: mais quente e visível */
-            --cor-laranja: #F97316; /* Laranja Vívido: mais forte e distinto */
-            --cor-vermelho: #EF4444; /* Vermelho Padrão: mais nítido e claro */
-            /* --- FIM DA MODIFICAÇÃO DE CORES --- */
+            --cor-amarelo: #ffff00; --cor-laranja: #ffa500; --cor-vermelho: #ff6347;
+            --cor-roxo: #9370db; --cor-texto-erro: #ffcdd2;
         }
         body { font-family: system-ui, sans-serif; background-color: var(--cor-fundo); color: var(--cor-texto); margin: 0; padding: 0; }
         .hidden { display: none !important; }
@@ -56,24 +49,15 @@
             padding: 10px; font-size: 1.2em; font-weight: bold; background-color: var(--cor-fundo); color: var(--cor-texto);
             border: 2px solid var(--cor-texto); border-radius: 8px; cursor: pointer;
         }
-        /* --- NOVO: Container para botões de usuário --- */
-        .user-actions { position: absolute; top: 5px; right: 5px; display: flex; gap: 10px; }
-        .user-actions button {
-            background-color: var(--cor-vermelho); color: white; border: none; padding: 8px 15px;
-            border-radius: 5px; cursor: pointer; font-weight: bold;
+        #logout-btn {
+            position: absolute; top: 5px; right: 5px; background-color: var(--cor-vermelho); color: white;
+            border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;
         }
-        .user-actions #change-password-btn { background-color: var(--cor-destaque); }
-        
         .legend { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 20px 0; }
         .legend-item { padding: 8px 15px; border-radius: 5px; font-weight: bold; font-size: 0.9em; }
-
-        /* Estilos para texto com sombra para garantir contraste */
-        .legend-laranja, .legend-amarelo, .legend-vermelho, .legend-roxo {
-            text-shadow: 0px 1px 2px rgba(0,0,0,0.7);
-        }
         .legend-verde { background-color: var(--cor-verde); color: black; }
-        .legend-laranja { background-color: var(--cor-laranja); color: white; }
-        .legend-amarelo { background-color: var(--cor-amarelo); color: white; }
+        .legend-laranja { background-color: var(--cor-laranja); color: black; }
+        .legend-amarelo { background-color: var(--cor-amarelo); color: black; }
         .legend-vermelho { background-color: var(--cor-vermelho); color: white; }
         .legend-roxo { background-color: var(--cor-roxo); color: white; }
         
@@ -119,24 +103,19 @@
         .day-cell.weekend { background-color: var(--cor-rosa-fds); }
         .day-cell.valid-day.editable { cursor: pointer; }
         .day-cell.empty { background-color: transparent; }
-
-        .color-amarelo, .color-laranja, .color-vermelho, .color-roxo {
-            color: white !important;
-            text-shadow: 0px 1px 2px rgba(0,0,0,0.6);
-        }
         .color-verde { background-color: var(--cor-verde) !important; }
         .color-amarelo { background-color: var(--cor-amarelo) !important; }
         .color-laranja { background-color: var(--cor-laranja) !important; }
-        .color-vermelho { background-color: var(--cor-vermelho) !important; }
-        .color-roxo { background-color: var(--cor-roxo) !important; }
+        .color-vermelho { background-color: var(--cor-vermelho) !important; color: white !important; }
+        .color-roxo { background-color: var(--cor-roxo) !important; color: white !important; }
 
         .day-cell.has-hours::after {
             content: ''; position: absolute; top: 3px; right: 3px;
             width: 6px; height: 6px; background-color: #0b1a33; border-radius: 50%;
         }
 
-        /* ===== ESTILOS DOS MODAIS ===== */
-        #day-editor-modal, #change-password-modal { /* Aplicando estilo a ambos os modais */
+        /* ===== ESTILOS DO MODAL DE EDIÃ‡ÃƒO DO DIA ===== */
+        #day-editor-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(0, 0, 0, 0.6); z-index: 2000;
             display: flex; align-items: center; justify-content: center;
@@ -159,35 +138,8 @@
             font-weight: bold; cursor: pointer; transition: opacity 0.2s;
         }
         .modal-buttons button:hover { opacity: 0.9; }
-        #modal-save-btn, #password-save-btn { background-color: var(--cor-destaque); color: white; }
-        #modal-cancel-btn, #password-cancel-btn { background-color: #6c757d; color: white; }
-
-        /* ========================================================= */
-        /* ===== INÍCIO DA CORREÇÃO - AJUSTES RESPONSIVOS ===== */
-        /* ========================================================= */
-        @media (max-width: 550px) {
-            header {
-                position: static; /* Remove a posição que causa a sobreposição */
-                display: flex;
-                flex-direction: column; /* Organiza o conteúdo do cabeçalho em coluna */
-                align-items: center;
-                gap: 20px; /* Adiciona um espaço entre o título e os botões */
-            }
-
-            .user-actions {
-                position: static; /* Retorna os botões ao fluxo normal da página */
-                flex-direction: column; /* Empilha os botões verticalmente */
-                width: 100%;
-                max-width: 350px; /* Limita a largura dos botões */
-            }
-
-            .user-actions button {
-                width: 100%; /* Faz os botões ocuparem toda a largura disponível */
-            }
-        }
-        /* ========================================================= */
-        /* ===== FIM DA CORREÇÃO - AJUSTES RESPONSIVOS ===== */
-        /* ========================================================= */
+        #modal-save-btn { background-color: var(--cor-destaque); color: white; }
+        #modal-cancel-btn { background-color: #6c757d; color: white; }
     </style>
 </head>
 <body>
@@ -204,7 +156,7 @@
         </div>
     </div>
     
-    <!-- APLICAÇÃO PRINCIPAL -->
+    <!-- APLICAÃ‡ÃƒO PRINCIPAL -->
     <div id="app-container" class="hidden">
         <div class="container">
             <header>
@@ -223,11 +175,7 @@
                         </select>
                     </div>
                 </div>
-                <!-- Container para os botões de ação do usuário com botões REORDENADOS -->
-                <div class="user-actions">
-                    <button id="logout-btn">Sair</button>
-                    <button id="change-password-btn">Alterar Senha</button>
-                </div>
+                <button id="logout-btn">Sair</button>
                 <div class="legend">
                     <div class="legend-item legend-verde">Feriados Nacionais</div>
                     <div class="legend-item legend-laranja">Feriados Estaduais</div>
@@ -237,20 +185,20 @@
                 </div>
             </header>
             
-            <div id="view-only-notice" class="hidden">Você está no modo de visualização. As edições estão desativadas.</div>
+            <div id="view-only-notice" class="hidden">VocÃª estÃ¡ no modo de visualizaÃ§Ã£o. As ediÃ§Ãµes estÃ£o desativadas.</div>
 
             <div class="controls-container">
                 <div class="employee-controls">
-                    <label for="employee-select">Funcionário:</label>
+                    <label for="employee-select">FuncionÃ¡rio:</label>
                     <select id="employee-select"></select>
-                    <input type="text" id="new-employee-name" placeholder="Nome do novo funcionário">
-                    <input type="email" id="new-employee-email" placeholder="E-mail de login do funcionário (opcional)">
+                    <input type="text" id="new-employee-name" placeholder="Nome do novo funcionÃ¡rio">
+                    <input type="email" id="new-employee-email" placeholder="E-mail de login do funcionÃ¡rio (opcional)">
                     <button id="add-employee-btn">Adicionar</button>
                     <button id="remove-employee-btn">Remover Selecionado</button>
                 </div>
                 
                 <div class="summary-container">
-                    <div class="summary-item"> Folgas Úteis: <span id="summary-uteis">0</span> </div>
+                    <div class="summary-item"> Folgas Ãšteis: <span id="summary-uteis">0</span> </div>
                     <div class="summary-item"> Folgas Feriado e FDS: <span id="summary-feriado-fds">0</span> </div>
                     <div class="summary-item summary-total"> <strong>TOTAL FOLGAS:</strong> <strong><span id="summary-total">0</span></strong> </div>
                     <div class="summary-item summary-total"> Horas Extras (Ano): <span id="summary-extras">0</span> </div>
@@ -280,10 +228,12 @@
             </div>
             <div class="modal-input-group">
                 <label for="modal-extra-hours">Horas Extras</label>
+                <!-- MODIFICADO: Input com datalist para sugestÃµes e entrada manual -->
                 <input type="number" id="modal-extra-hours" list="hours-datalist" min="0" step="0.25" placeholder="Ex: 2.5">
             </div>
             <div class="modal-input-group">
                 <label for="modal-late-hours">Horas de Atraso</label>
+                 <!-- MODIFICADO: Input com datalist para sugestÃµes e entrada manual -->
                 <input type="number" id="modal-late-hours" list="hours-datalist" min="0" step="0.25" placeholder="Ex: 0.5">
             </div>
             <div class="modal-buttons">
@@ -293,26 +243,7 @@
         </div>
     </div>
     
-    <!-- NOVO: MODAL PARA ALTERAR A SENHA -->
-    <div id="change-password-modal" class="hidden">
-        <div class="modal-content">
-            <h3>Alterar Senha</h3>
-            <div class="modal-input-group">
-                <label for="new-password">Nova Senha</label>
-                <input type="password" id="new-password" placeholder="Mínimo de 6 caracteres" required>
-            </div>
-             <div class="modal-input-group">
-                <label for="confirm-password">Confirmar Nova Senha</label>
-                <input type="password" id="confirm-password" required>
-            </div>
-            <p id="password-change-error" style="color: var(--cor-texto-erro); height: 20px; font-weight:bold;"></p>
-            <div class="modal-buttons">
-                <button id="password-cancel-btn">Cancelar</button>
-                <button id="password-save-btn">Salvar Nova Senha</button>
-            </div>
-        </div>
-    </div>
-
+    <!-- NOVO: Datalist com sugestÃµes de tempo, nÃ£o visÃ­vel diretamente -->
     <datalist id="hours-datalist"></datalist>
 
     <!-- SCRIPTS DO FIREBASE -->
@@ -362,7 +293,7 @@
                 loginError.textContent = '';
                 auth.signInWithEmailAndPassword(email, password)
                     .catch((error) => {
-                        loginError.textContent = 'E-mail ou senha inválidos.';
+                        loginError.textContent = 'E-mail ou senha invÃ¡lidos.';
                         document.getElementById('password').value = '';
                     });
             });
@@ -379,7 +310,7 @@
                         }
                         showApp(role, user.email); 
                     }).catch((error) => {
-                        console.error("Erro ao buscar função do usuário:", error);
+                        console.error("Erro ao buscar funÃ§Ã£o do usuÃ¡rio:", error);
                         showApp('viewer', user.email);
                     });
                 } else {
@@ -391,7 +322,7 @@
 
             function initializeAppLogic(userRole, userEmail) {
                 const isEditor = userRole === 'editor';
-                // ... (seu código NATIONAL_HOLIDAYS, yearSelect, MONTHS, etc. continua o mesmo)
+
                 const NATIONAL_HOLIDAYS = {
                     2024: { '2024-01-01':{c:'v'},'2024-02-12':{c:'v'},'2024-02-13':{c:'v'},'2024-03-29':{c:'v'},'2024-04-21':{c:'v'},'2024-05-01':{c:'v'},'2024-05-30':{c:'v'},'2024-09-07':{c:'v'},'2024-10-12':{c:'v'},'2024-11-02':{c:'v'},'2024-11-15':{c:'v'},'2024-11-20':{c:'v'},'2024-12-25':{c:'v'} },
                     2025: { '2025-01-01':{c:'v'},'2025-03-03':{c:'v'},'2025-03-04':{c:'v'},'2025-04-18':{c:'v'},'2025-04-21':{c:'v'},'2025-05-01':{c:'v'},'2025-06-19':{c:'v'},'2025-09-07':{c:'v'},'2025-10-12':{c:'v'},'2025-11-02':{c:'v'},'2025-11-15':{c:'v'},'2025-11-20':{c:'v'},'2025-12-25':{c:'v'} },
@@ -405,8 +336,8 @@
                 const yearSelect = document.getElementById('year-select');
                 let selectedYear = parseInt(yearSelect.value);
 
-                const MONTHS = ['JANEIRO', 'FEVEREIRO', 'MARÇO', 'ABRIL', 'MAIO', 'JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'];
-                const DAYS_OF_WEEK = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB', 'DOM'];
+                const MONTHS = ['JANEIRO', 'FEVEREIRO', 'MARÃ‡O', 'ABRIL', 'MAIO', 'JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'];
+                const DAYS_OF_WEEK = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÃB', 'DOM'];
                 
                 const calendarContainer = document.getElementById('calendar-container');
                 const employeeSelect = document.getElementById('employee-select');
@@ -423,35 +354,25 @@
                 const modalSaveBtn = document.getElementById('modal-save-btn');
                 const modalCancelBtn = document.getElementById('modal-cancel-btn');
                 let currentlyEditingDate = null;
-                
-                // --- NOVO: Referências para o modal de alteração de senha ---
-                const changePasswordBtn = document.getElementById('change-password-btn');
-                const changePasswordModal = document.getElementById('change-password-modal');
-                const newPasswordInput = document.getElementById('new-password');
-                const confirmPasswordInput = document.getElementById('confirm-password');
-                const passwordSaveBtn = document.getElementById('password-save-btn');
-                const passwordCancelBtn = document.getElementById('password-cancel-btn');
-                const passwordChangeError = document.getElementById('password-change-error');
-                // --- FIM DAS NOVAS REFERÊNCIAS ---
 
                 let state = { funcionarios: [], funcionarioSelecionadoId: null };
                 let localStateLoaded = false;
                 
-                // ... (O restante das suas funções: populateHoursDatalist, setupUIForRole, saveState, etc.)
-                // As funções abaixo permanecem as mesmas
-                
+                // NOVO: FunÃ§Ã£o para popular o datalist de horas com sugestÃµes
                 function populateHoursDatalist() {
                     const datalist = document.getElementById('hours-datalist');
-                    if (datalist.options.length > 0) return; 
+                    if (datalist.options.length > 0) return; // Preenche apenas uma vez
 
                     const options = [];
+                    // Adicionar incrementos de 5 e 10 minutos
                     for (let min = 5; min <= 55; min += 5) {
-                         options.push({ label: ${min} min, value: (min / 60).toFixed(4) });
+                         options.push({ label: `${min} min`, value: (min / 60).toFixed(4) });
                     }
                     
+                    // Adicionar incrementos de horas e meia hora
                     for (let h = 1; h <= 8; h++) {
-                        options.push({ label: ${h} hora${h > 1 ? 's' : ''}, value: h });
-                        options.push({ label: ${h}h 30 min, value: h + 0.5 });
+                        options.push({ label: `${h} hora${h > 1 ? 's' : ''}`, value: h });
+                        options.push({ label: `${h}h 30 min`, value: h + 0.5 });
                     }
 
                     options.forEach(opt => {
@@ -485,14 +406,14 @@
                     if (stopListeningToFirebase) { stopListeningToFirebase(); }
                     
                     selectedYear = parseInt(yearSelect.value);
-                    docRef = db.collection("planejamentos").doc(dados${selectedYear});
+                    docRef = db.collection("planejamentos").doc(`dados${selectedYear}`);
 
                     stopListeningToFirebase = docRef.onSnapshot(doc => {
                         if (doc.exists) {
                             state = doc.data();
                         } else {
                             if (isEditor) {
-                                const initialId = func-${Date.now()};
+                                const initialId = `func-${Date.now()}`;
                                 const holidaysForYear = NATIONAL_HOLIDAYS[selectedYear] || {};
                                 const initialCalendar = {};
                                 for (const date in holidaysForYear) {
@@ -573,7 +494,7 @@
                     
                     if (funcionariosParaExibir.length === 0) {
                         const option = document.createElement('option');
-                        option.textContent = isEditor ? "Adicione um funcionário" : "Nenhum planejamento para este ano";
+                        option.textContent = isEditor ? "Adicione um funcionÃ¡rio" : "Nenhum planejamento para este ano";
                         employeeSelect.appendChild(option);
                         employeeSelect.disabled = true; 
                         removeEmployeeBtn.disabled = true;
@@ -624,7 +545,7 @@
                             if (isEditor) { dayCell.classList.add('editable'); }
                             
                             dayCell.textContent = day;
-                            const dateString = ${selectedYear}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')};
+                            const dateString = `${selectedYear}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                             dayCell.dataset.date = dateString;
                             const dayOfWeek = new Date(selectedYear, monthIndex, day).getDay();
                             if (dayOfWeek === 0 || dayOfWeek === 6) { dayCell.classList.add('weekend'); }
@@ -632,7 +553,7 @@
                             if (funcionarioAtual && funcionarioAtual.calendario && funcionarioAtual.calendario[dateString]) {
                                 const entry = funcionarioAtual.calendario[dateString];
                                 const data = typeof entry === 'string' ? { cor: entry } : entry;
-                                if (data.cor && data.cor !== 'default') { dayCell.classList.add(color-${data.cor}); }
+                                if (data.cor && data.cor !== 'default') { dayCell.classList.add(`color-${data.cor}`); }
                                 if ((parseFloat(data.extras) || 0) > 0 || (parseFloat(data.atrasos) || 0) > 0) { dayCell.classList.add('has-hours'); }
                             }
                             monthGrid.appendChild(dayCell);
@@ -652,9 +573,10 @@
                     const entry = (funcionario?.calendario?.[currentlyEditingDate]) || {};
                     const data = typeof entry === 'string' ? { cor: entry } : entry;
 
-                    modalTitle.textContent = Editar Dia - ${new Date(currentlyEditingDate + 'T00:00:00').toLocaleDateString('pt-BR')};
+                    modalTitle.textContent = `Editar Dia - ${new Date(currentlyEditingDate + 'T00:00:00').toLocaleDateString('pt-BR')}`;
                     modalColorSelect.value = data.cor || 'default';
                     
+                    // MODIFICADO: Preenche o valor do input, ou deixa em branco para o placeholder aparecer
                     modalExtraHours.value = data.extras || '';
                     modalLateHours.value = data.atrasos || '';
                     
@@ -668,6 +590,7 @@
                     if (!funcionario.calendario) { funcionario.calendario = {}; }
 
                     const newColor = modalColorSelect.value;
+                    // MODIFICADO: Pega o valor do input e converte para nÃºmero
                     const newExtras = parseFloat(modalExtraHours.value) || 0;
                     const newAtrasos = parseFloat(modalLateHours.value) || 0;
 
@@ -687,20 +610,20 @@
                     const name = newEmployeeInput.value.trim();
                     const email = newEmployeeEmailInput.value.trim();
                     if (name) {
-                        const newId = func-${Date.now()};
+                        const newId = `func-${Date.now()}`;
                         if (!state.funcionarios) { state.funcionarios = []; }
                         state.funcionarios.push({ id: newId, nome: name, email: email, calendario: {} });
                         state.funcionarioSelecionadoId = newId;
                         newEmployeeInput.value = '';
                         newEmployeeEmailInput.value = '';
                         saveState();
-                    } else { alert('Por favor, insira um nome para o funcionário.'); }
+                    } else { alert('Por favor, insira um nome para o funcionÃ¡rio.'); }
                 }
 
                 function handleRemoveEmployee() {
                     if (!isEditor || !state.funcionarioSelecionadoId || !state.funcionarios || state.funcionarios.length === 0) return;
                     const selectedEmployee = state.funcionarios.find(f => f.id === state.funcionarioSelecionadoId);
-                    if(confirm(Tem certeza que deseja remover "${selectedEmployee.nome}"? Esta ação não pode ser desfeita.)) {
+                    if(confirm(`Tem certeza que deseja remover "${selectedEmployee.nome}"? Esta aÃ§Ã£o nÃ£o pode ser desfeita.`)) {
                         state.funcionarios = state.funcionarios.filter(f => f.id !== state.funcionarioSelecionadoId);
                         state.funcionarioSelecionadoId = state.funcionarios.length > 0 ? state.funcionarios[0].id : null;
                         saveState();
@@ -720,53 +643,9 @@
                     listenForChanges();
                 }
                 
+                // NOVO: Popula o datalist na inicializaÃ§Ã£o
                 populateHoursDatalist();
                 listenForChanges();
-                
-                // --- NOVO: Lógica para o modal de alteração de senha ---
-                changePasswordBtn.addEventListener('click', () => {
-                    newPasswordInput.value = '';
-                    confirmPasswordInput.value = '';
-                    passwordChangeError.textContent = '';
-                    changePasswordModal.classList.remove('hidden');
-                });
-
-                passwordCancelBtn.addEventListener('click', () => {
-                    changePasswordModal.classList.add('hidden');
-                });
-
-                passwordSaveBtn.addEventListener('click', () => {
-                    const newPassword = newPasswordInput.value;
-                    const confirmPassword = confirmPasswordInput.value;
-                    passwordChangeError.textContent = '';
-
-                    if (newPassword.length < 6) {
-                        passwordChangeError.textContent = 'A senha deve ter no mínimo 6 caracteres.';
-                        return;
-                    }
-                    if (newPassword !== confirmPassword) {
-                        passwordChangeError.textContent = 'As senhas não conferem.';
-                        return;
-                    }
-
-                    const user = firebase.auth().currentUser;
-                    if (user) {
-                        passwordSaveBtn.disabled = true; // Desabilita o botão para evitar cliques duplos
-                        passwordChangeError.textContent = 'Alterando...';
-
-                        user.updatePassword(newPassword).then(() => {
-                            changePasswordModal.classList.add('hidden');
-                            alert('Senha alterada com sucesso!');
-                            passwordSaveBtn.disabled = false;
-                        }).catch((error) => {
-                            console.error("Erro ao alterar a senha:", error);
-                            passwordChangeError.textContent = 'Erro: Tente sair e logar novamente.';
-                            passwordSaveBtn.disabled = false;
-                        });
-                    }
-                });
-                // --- FIM DA NOVA LÓGICA ---
-
 
                 calendarContainer.addEventListener('click', handleDayClick);
                 addEmployeeBtn.addEventListener('click', handleAddEmployee);
