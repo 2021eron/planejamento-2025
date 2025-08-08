@@ -41,7 +41,7 @@
         /* ===== ESTILOS DO APP PRINCIPAL ===== */
         #app-container { padding: 15px; }
         .container { max-width: 1400px; margin: auto; }
-        header { text-align: center; margin-bottom: 20px; position: relative; }
+        header { text-align: center; margin-bottom: 20px; }
         .title-container { display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap; }
         .title { background-color: var(--cor-destaque); padding: 10px 20px; font-size: 2em; font-weight: bold; display: inline-block; border-radius: 8px; border: 2px solid var(--cor-texto); }
         .year-selector-group { display: flex; align-items: center; gap: 10px; }
@@ -49,10 +49,23 @@
             padding: 10px; font-size: 1.2em; font-weight: bold; background-color: var(--cor-fundo); color: var(--cor-texto);
             border: 2px solid var(--cor-texto); border-radius: 8px; cursor: pointer;
         }
-        #logout-btn {
-            position: absolute; top: 5px; right: 5px; background-color: var(--cor-vermelho); color: white;
+        
+        /* NOVO: Estilo para o container dos botões do cabeçalho */
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        /* MODIFICADO: Estilo unificado para os botões e remoção do posicionamento absoluto */
+        #logout-btn, #change-password-btn {
+            background-color: var(--cor-vermelho); color: white;
             border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;
         }
+        #change-password-btn {
+            background-color: #6c757d; /* Cinza para diferenciar */
+        }
+
         .legend { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 20px 0; }
         .legend-item { padding: 8px 15px; border-radius: 5px; font-weight: bold; font-size: 0.9em; }
         .legend-verde { background-color: var(--cor-verde); color: black; }
@@ -114,7 +127,7 @@
             width: 6px; height: 6px; background-color: #0b1a33; border-radius: 50%;
         }
 
-        /* ===== ESTILOS DO MODAL DE EDIÃ‡ÃƒO DO DIA ===== */
+        /* ===== ESTILOS DO MODAL DE EDIÃÇÃO DO DIA ===== */
         #day-editor-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(0, 0, 0, 0.6); z-index: 2000;
@@ -156,10 +169,11 @@
         </div>
     </div>
     
-    <!-- APLICAÃ‡ÃƒO PRINCIPAL -->
+    <!-- APLICAÇÃO PRINCIPAL -->
     <div id="app-container" class="hidden">
         <div class="container">
             <header>
+                <!-- MODIFICADO: Estrutura do cabeçalho para melhor responsividade -->
                 <div class="title-container">
                     <div class="title">PLANEJAMENTO</div>
                     <div class="year-selector-group">
@@ -174,8 +188,12 @@
                             <option value="2030">2030</option>
                         </select>
                     </div>
+                    <!-- NOVO: Container para os botões -->
+                    <div class="header-actions">
+                         <button id="change-password-btn">Mudar Senha</button>
+                         <button id="logout-btn">Sair</button>
+                    </div>
                 </div>
-                <button id="logout-btn">Sair</button>
                 <div class="legend">
                     <div class="legend-item legend-verde">Feriados Nacionais</div>
                     <div class="legend-item legend-laranja">Feriados Estaduais</div>
@@ -228,12 +246,10 @@
             </div>
             <div class="modal-input-group">
                 <label for="modal-extra-hours">Horas Extras</label>
-                <!-- MODIFICADO: Input com datalist para sugestÃµes e entrada manual -->
                 <input type="number" id="modal-extra-hours" list="hours-datalist" min="0" step="0.25" placeholder="Ex: 2.5">
             </div>
             <div class="modal-input-group">
                 <label for="modal-late-hours">Horas de Atraso</label>
-                 <!-- MODIFICADO: Input com datalist para sugestÃµes e entrada manual -->
                 <input type="number" id="modal-late-hours" list="hours-datalist" min="0" step="0.25" placeholder="Ex: 0.5">
             </div>
             <div class="modal-buttons">
@@ -243,7 +259,6 @@
         </div>
     </div>
     
-    <!-- NOVO: Datalist com sugestÃµes de tempo, nÃ£o visÃ­vel diretamente -->
     <datalist id="hours-datalist"></datalist>
 
     <!-- SCRIPTS DO FIREBASE -->
@@ -293,7 +308,7 @@
                 loginError.textContent = '';
                 auth.signInWithEmailAndPassword(email, password)
                     .catch((error) => {
-                        loginError.textContent = 'E-mail ou senha invÃ¡lidos.';
+                        loginError.textContent = 'E-mail ou senha inválidos.';
                         document.getElementById('password').value = '';
                     });
             });
@@ -310,7 +325,7 @@
                         }
                         showApp(role, user.email); 
                     }).catch((error) => {
-                        console.error("Erro ao buscar funÃ§Ã£o do usuÃ¡rio:", error);
+                        console.error("Erro ao buscar função do usuário:", error);
                         showApp('viewer', user.email);
                     });
                 } else {
@@ -337,7 +352,7 @@
                 let selectedYear = parseInt(yearSelect.value);
 
                 const MONTHS = ['JANEIRO', 'FEVEREIRO', 'MARÇO', 'ABRIL', 'MAIO', 'JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'];
-                const DAYS_OF_WEEK = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÃB', 'DOM'];
+                const DAYS_OF_WEEK = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB', 'DOM'];
                 
                 const calendarContainer = document.getElementById('calendar-container');
                 const employeeSelect = document.getElementById('employee-select');
@@ -346,6 +361,9 @@
                 const addEmployeeBtn = document.getElementById('add-employee-btn');
                 const removeEmployeeBtn = document.getElementById('remove-employee-btn');
                 
+                // NOVO: Referência ao botão de mudar senha
+                const changePasswordBtn = document.getElementById('change-password-btn');
+
                 const modal = document.getElementById('day-editor-modal');
                 const modalTitle = document.getElementById('modal-title');
                 const modalColorSelect = document.getElementById('modal-color-select');
@@ -358,18 +376,15 @@
                 let state = { funcionarios: [], funcionarioSelecionadoId: null };
                 let localStateLoaded = false;
                 
-                // NOVO: FunÃ§Ã£o para popular o datalist de horas com sugestÃµes
                 function populateHoursDatalist() {
                     const datalist = document.getElementById('hours-datalist');
-                    if (datalist.options.length > 0) return; // Preenche apenas uma vez
+                    if (datalist.options.length > 0) return; 
 
                     const options = [];
-                    // Adicionar incrementos de 5 e 10 minutos
                     for (let min = 5; min <= 55; min += 5) {
                          options.push({ label: `${min} min`, value: (min / 60).toFixed(4) });
                     }
                     
-                    // Adicionar incrementos de horas e meia hora
                     for (let h = 1; h <= 8; h++) {
                         options.push({ label: `${h} hora${h > 1 ? 's' : ''}`, value: h });
                         options.push({ label: `${h}h 30 min`, value: h + 0.5 });
@@ -576,7 +591,6 @@
                     modalTitle.textContent = `Editar Dia - ${new Date(currentlyEditingDate + 'T00:00:00').toLocaleDateString('pt-BR')}`;
                     modalColorSelect.value = data.cor || 'default';
                     
-                    // MODIFICADO: Preenche o valor do input, ou deixa em branco para o placeholder aparecer
                     modalExtraHours.value = data.extras || '';
                     modalLateHours.value = data.atrasos || '';
                     
@@ -590,7 +604,6 @@
                     if (!funcionario.calendario) { funcionario.calendario = {}; }
 
                     const newColor = modalColorSelect.value;
-                    // MODIFICADO: Pega o valor do input e converte para nÃºmero
                     const newExtras = parseFloat(modalExtraHours.value) || 0;
                     const newAtrasos = parseFloat(modalLateHours.value) || 0;
 
@@ -617,13 +630,13 @@
                         newEmployeeInput.value = '';
                         newEmployeeEmailInput.value = '';
                         saveState();
-                    } else { alert('Por favor, insira um nome para o funcionÃ¡rio.'); }
+                    } else { alert('Por favor, insira um nome para o funcionário.'); }
                 }
 
                 function handleRemoveEmployee() {
                     if (!isEditor || !state.funcionarioSelecionadoId || !state.funcionarios || state.funcionarios.length === 0) return;
                     const selectedEmployee = state.funcionarios.find(f => f.id === state.funcionarioSelecionadoId);
-                    if(confirm(`Tem certeza que deseja remover "${selectedEmployee.nome}"? Esta aÃ§Ã£o nÃ£o pode ser desfeita.`)) {
+                    if(confirm(`Tem certeza que deseja remover "${selectedEmployee.nome}"? Esta ação não pode ser desfeita.`)) {
                         state.funcionarios = state.funcionarios.filter(f => f.id !== state.funcionarioSelecionadoId);
                         state.funcionarioSelecionadoId = state.funcionarios.length > 0 ? state.funcionarios[0].id : null;
                         saveState();
@@ -643,7 +656,24 @@
                     listenForChanges();
                 }
                 
-                // NOVO: Popula o datalist na inicializaÃ§Ã£o
+                // NOVO: Função para alterar a senha
+                function handleChangePassword() {
+                    const newPassword = prompt("Digite sua nova senha (mínimo 6 caracteres):");
+                    if (newPassword && newPassword.length >= 6) {
+                        const user = firebase.auth().currentUser;
+                        if (user) {
+                            user.updatePassword(newPassword).then(() => {
+                                alert("Senha alterada com sucesso!");
+                            }).catch((error) => {
+                                console.error("Erro ao alterar senha:", error);
+                                alert(`Erro ao alterar a senha: ${error.message}\n\nNota: Para sua segurança, pode ser necessário fazer login novamente antes de alterar a senha.`);
+                            });
+                        }
+                    } else if (newPassword) {
+                        alert("A senha deve ter pelo menos 6 caracteres.");
+                    }
+                }
+
                 populateHoursDatalist();
                 listenForChanges();
 
@@ -654,6 +684,9 @@
                 yearSelect.addEventListener('change', handleYearChange);
                 modalSaveBtn.addEventListener('click', handleSaveDay);
                 modalCancelBtn.addEventListener('click', () => modal.classList.add('hidden'));
+                
+                // NOVO: Adiciona o listener de evento para o novo botão
+                changePasswordBtn.addEventListener('click', handleChangePassword);
             }
         });
     </script>
