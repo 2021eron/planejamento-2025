@@ -750,7 +750,7 @@
                     activeTooltipCell = cell;
                 }
 
-                function showTooltip(event) {
+                               function showTooltip(event) {
                     const dayCell = event.target.closest('.day-cell.has-hours');
                     if (!dayCell) return;
 
@@ -781,15 +781,32 @@
                     tooltip.classList.remove('hidden');
 
                     const rect = dayCell.getBoundingClientRect();
-                    let top = window.scrollY + rect.top - tooltip.offsetHeight - 10;
+                    const tooltipWidth = tooltip.offsetWidth;
+                    const tooltipHeight = tooltip.offsetHeight;
+
+                    // Lógica vertical (mantida): posiciona acima ou abaixo da célula
+                    let top = window.scrollY + rect.top - tooltipHeight - 10;
                     if (top < window.scrollY + 10) {
                         top = window.scrollY + rect.bottom + 10;
                     }
 
-                    tooltip.style.left = `${window.scrollX + rect.left + (rect.width / 2) - (tooltip.offsetWidth / 2)}px`;
+                    // --- NOVA LÓGICA DE POSICIONAMENTO HORIZONTAL ---
+                    // 1. Tenta centralizar em relação à célula
+                    let left = window.scrollX + rect.left + (rect.width / 2) - (tooltipWidth / 2);
+                    
+                    // 2. Garante que o tooltip não saia da tela
+                    const margin = 10; // Margem de 10px das bordas da tela
+                    if (left < window.scrollX + margin) {
+                        left = window.scrollX + margin; // Impede de sair pela esquerda
+                    }
+                    if ((left + tooltipWidth) > (window.scrollX + window.innerWidth - margin)) {
+                        left = window.scrollX + window.innerWidth - tooltipWidth - margin; // Impede de sair pela direita
+                    }
+                    // --- FIM DA NOVA LÓGICA ---
+
+                    tooltip.style.left = `${left}px`;
                     tooltip.style.top = `${top}px`;
                 }
-
                 function hideTooltip() {
                     tooltip.classList.add('hidden');
                 }
