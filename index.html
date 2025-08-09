@@ -393,6 +393,9 @@
 
             function initializeAppLogic(userRole, userEmail) {
                 const isEditor = userRole === 'editor';
+                // ATUALIZAÇÃO: Detecta se é um dispositivo de toque (celular/tablet)
+                const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+
                 const NATIONAL_HOLIDAYS = {
                     2024: { '2024-01-01':{c:'v'},'2024-02-12':{c:'v'},'2024-02-13':{c:'v'},'2024-03-29':{c:'v'},'2024-04-21':{c:'v'},'2024-05-01':{c:'v'},'2024-05-30':{c:'v'},'2024-09-07':{c:'v'},'2024-10-12':{c:'v'},'2024-11-02':{c:'v'},'2024-11-15':{c:'v'},'2024-11-20':{c:'v'},'2024-12-25':{c:'v'} },
                     2025: { '2025-01-01':{c:'v'},'2025-03-03':{c:'v'},'2025-03-04':{c:'v'},'2025-04-18':{c:'v'},'2025-04-21':{c:'v'},'2025-05-01':{c:'v'},'2025-06-19':{c:'v'},'2025-09-07':{c:'v'},'2025-10-12':{c:'v'},'2025-11-02':{c:'v'},'2025-11-15':{c:'v'},'2025-11-20':{c:'v'},'2025-12-25':{c:'v'} },
@@ -416,7 +419,6 @@
                 const addEmployeeBtn = document.getElementById('add-employee-btn');
                 const removeEmployeeBtn = document.getElementById('remove-employee-btn');
                 
-                // Elementos do Modal ATUALIZADOS
                 const modal = document.getElementById('day-editor-modal');
                 const modalTitle = document.getElementById('modal-title');
                 const modalColorSelect = document.getElementById('modal-color-select');
@@ -424,12 +426,12 @@
                 const modalLateHours = document.getElementById('modal-late-hours');
                 const modalSaveBtn = document.getElementById('modal-save-btn');
                 const modalCancelBtn = document.getElementById('modal-cancel-btn');
-                const modalExtraObs = document.getElementById('modal-extra-obs'); // Campo de observação
-                const modalLateObs = document.getElementById('modal-late-obs');   // Campo de observação
+                const modalExtraObs = document.getElementById('modal-extra-obs');
+                const modalLateObs = document.getElementById('modal-late-obs');
                 let currentlyEditingDate = null;
 
-                // NOVO: Elemento do Tooltip
                 const tooltip = document.getElementById('day-tooltip');
+                let activeTooltipCell = null; // ATUALIZAÇÃO: Para controlar o tooltip no celular
                 
                 const changePasswordBtn = document.getElementById('change-password-btn');
                 const changePasswordModal = document.getElementById('change-password-modal');
@@ -607,7 +609,6 @@
                                 const data = typeof entry === 'string' ? { cor: entry } : entry;
                                 if (data.cor && data.cor !== 'default') { dayCell.classList.add(`color-${data.cor}`); }
                                 
-                                // ATUALIZADO: O ponto aparece se tiver cor, horas ou observação
                                 const hasDetails = data.cor !== 'default' || (parseFloat(data.extras) || 0) > 0 || (parseFloat(data.atrasos) || 0) > 0 || data.extrasObs || data.atrasosObs;
                                 if (hasDetails) {
                                     dayCell.classList.add('has-hours');
@@ -620,21 +621,33 @@
                     });
                 }
                 
+                // ATUALIZAÇÃO: Função de clique agora diferencia desktop e mobile
                 function handleDayClick(event) {
                     const cell = event.target.closest('.valid-day');
                     if (!cell || !state.funcionarioSelecionadoId) return;
 
+                    // Em dispositivo de toque, apenas mostra/esconde o tooltip.
+                    if (isTouchDevice) {
+                        toggleTooltipOnTap(cell);
+                        return; // Impede a abertura do modal
+                    }
+                    
+                    // Em desktop, abre o modal de edição (comportamento original)
+                    openEditModal(cell);
+                }
+
+                // ATUALIZAÇÃO: Lógica de abrir o modal foi movida para sua própria função
+                function openEditModal(cell) {
                     currentlyEditingDate = cell.dataset.date;
                     const funcionario = state.funcionarios.find(f => f.id === state.funcionarioSelecionadoId);
                     const entry = (funcionario?.calendario?.[currentlyEditingDate]) || {};
                     const data = typeof entry === 'string' ? { cor: entry } : entry;
                     
-                    // ATUALIZADO: Preenche os campos do modal, incluindo as observações
                     modalColorSelect.value = data.cor || 'default';
                     modalExtraHours.value = data.extras || '';
                     modalLateHours.value = data.atrasos || '';
-                    modalExtraObs.value = data.extrasObs || ''; // Novo campo
-                    modalLateObs.value = data.atrasosObs || '';   // Novo campo
+                    modalExtraObs.value = data.extrasObs || '';
+                    modalLateObs.value = data.atrasosObs || '';
 
                     const isReadOnly = !isEditor;
                     modalColorSelect.disabled = isReadOnly;
@@ -662,7 +675,6 @@
                     if (!funcionario) return;
                     if (!funcionario.calendario) { funcionario.calendario = {}; }
 
-                    // ATUALIZADO: Lê os valores dos novos campos de observação
                     const newColor = modalColorSelect.value;
                     const newExtras = parseFloat(modalExtraHours.value) || 0;
                     const newAtrasos = parseFloat(modalLateHours.value) || 0;
@@ -672,13 +684,12 @@
                     if (newColor === 'default' && newExtras === 0 && newAtrasos === 0 && !newExtrasObs && !newAtrasosObs) {
                         delete funcionario.calendario[currentlyEditingDate];
                     } else {
-                        // ATUALIZADO: Salva os novos campos no objeto
                         funcionario.calendario[currentlyEditingDate] = { 
                             cor: newColor, 
                             extras: newExtras, 
                             atrasos: newAtrasos,
-                            extrasObs: newExtrasObs, // Salva observação
-                            atrasosObs: newAtrasosObs  // Salva observação
+                            extrasObs: newExtrasObs,
+                            atrasosObs: newAtrasosObs
                         };
                     }
                     
@@ -725,7 +736,20 @@
                     listenForChanges();
                 }
 
-                // --- NOVO: LÓGICA DO TOOLTIP ---
+                // ATUALIZAÇÃO: Nova função para controlar o tooltip no toque
+                function toggleTooltipOnTap(cell) {
+                    if (activeTooltipCell === cell) {
+                        hideTooltip();
+                        activeTooltipCell = null;
+                        return;
+                    }
+                    if (activeTooltipCell) {
+                        hideTooltip();
+                    }
+                    showTooltip({ target: cell }); // Simula um evento para a função showTooltip
+                    activeTooltipCell = cell;
+                }
+
                 function showTooltip(event) {
                     const dayCell = event.target.closest('.day-cell.has-hours');
                     if (!dayCell) return;
@@ -758,7 +782,7 @@
 
                     const rect = dayCell.getBoundingClientRect();
                     let top = window.scrollY + rect.top - tooltip.offsetHeight - 10;
-                    if (top < window.scrollY + 10) { // Se for cortar no topo da tela, mostra embaixo
+                    if (top < window.scrollY + 10) {
                         top = window.scrollY + rect.bottom + 10;
                     }
 
@@ -814,10 +838,22 @@
                     }
                 });
 
-                // Event Listeners
+                // --- Event Listeners ATUALIZADOS ---
                 calendarContainer.addEventListener('click', handleDayClick);
-                calendarContainer.addEventListener('mouseover', showTooltip); // NOVO
-                calendarContainer.addEventListener('mouseout', hideTooltip);  // NOVO
+
+                // Adiciona listeners de hover apenas se NÃO for um dispositivo de toque
+                if (!isTouchDevice) {
+                    calendarContainer.addEventListener('mouseover', showTooltip);
+                    calendarContainer.addEventListener('mouseout', hideTooltip);
+                } else {
+                    // Adiciona um listener para fechar o tooltip ao tocar fora
+                    document.addEventListener('click', (event) => {
+                        if (activeTooltipCell && !calendarContainer.contains(event.target)) {
+                            hideTooltip();
+                            activeTooltipCell = null;
+                        }
+                    });
+                }
 
                 addEmployeeBtn.addEventListener('click', handleAddEmployee);
                 removeEmployeeBtn.addEventListener('click', handleRemoveEmployee);
