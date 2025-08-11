@@ -431,7 +431,6 @@
                 const addEmployeeBtn = document.getElementById('add-employee-btn');
                 const removeEmployeeBtn = document.getElementById('remove-employee-btn');
                 const makeSupervisorBtn = document.getElementById('make-supervisor-btn');
-                const employeeStatusSpan = document.getElementById('employee-status');
                 
                 const modal = document.getElementById('day-editor-modal');
                 const modalTitle = document.getElementById('modal-title');
@@ -447,34 +446,32 @@
                 let currentlyEditingDate = null;
 
                 const tooltip = document.getElementById('day-tooltip');
-                let activeTooltipCell = null; 
                 
-                const changePasswordBtn = document.getElementById('change-password-btn');
-                const changePasswordModal = document.getElementById('change-password-modal');
-                const newPasswordInput = document.getElementById('new-password');
-                const confirmPasswordInput = document.getElementById('confirm-password');
-                const passwordSaveBtn = document.getElementById('password-save-btn');
-                const passwordCancelBtn = document.getElementById('password-cancel-btn');
-                const passwordChangeError = document.getElementById('password-change-error');
-
                 let state = { funcionarios: [], funcionarioSelecionadoId: null };
                 let localStateLoaded = false;
                 
+                let longPressTimer;
+                let longPressTriggered = false;
+
                 function populateHoursDatalist() {
                     const datalist = document.getElementById('hours-datalist');
                     if (datalist.options.length > 0) return; 
-                    const options = [];
-                    for (let min = 5; min <= 55; min += 5) { options.push({ label: `${min} min`, value: (min / 60).toFixed(4) }); }
-                    for (let h = 1; h <= 8; h++) {
-                        options.push({ label: `${h} hora${h > 1 ? 's' : ''}`, value: h });
-                        options.push({ label: `${h}h 30 min`, value: h + 0.5 });
-                    }
-                    options.forEach(opt => {
+                    for (let min = 5; min <= 55; min += 5) {
                         const optionEl = document.createElement('option');
-                        optionEl.value = opt.value;
-                        optionEl.label = opt.label;
+                        optionEl.value = (min / 60).toFixed(4);
+                        optionEl.label = `${min} min`;
                         datalist.appendChild(optionEl);
-                    });
+                    }
+                    for (let h = 1; h <= 8; h++) {
+                        const opt1 = document.createElement('option');
+                        opt1.value = h;
+                        opt1.label = `${h} hora${h > 1 ? 's' : ''}`;
+                        datalist.appendChild(opt1);
+                        const opt2 = document.createElement('option');
+                        opt2.value = h + 0.5;
+                        opt2.label = `${h}h 30 min`;
+                        datalist.appendChild(opt2);
+                    }
                 }
                 
                 function setupUIForRole() {
@@ -524,15 +521,13 @@
                         for (const dateString in funcionarioAtual.calendario) {
                             const entry = funcionarioAtual.calendario[dateString] || {};
                             const data = typeof entry === 'string' ? { cor: entry } : entry;
-                            data.extras = parseFloat(data.extras) || 0;
-                            data.atrasos = parseFloat(data.atrasos) || 0;
                             const date = new Date(dateString + 'T00:00:00');
                             const dayOfWeek = date.getDay(); 
                             const isWeekday = dayOfWeek >= 1 && dayOfWeek <= 5;
                             if (isWeekday && ['amarelo', 'laranja'].includes(data.cor)) { folgasUteis++; }
                             if (data.cor === 'verde' || (!isWeekday && ['amarelo', 'laranja', 'vermelho'].includes(data.cor))) { folgasFeriadoFDS++; }
-                            totalExtras += data.extras;
-                            totalAtrasos += data.atrasos;
+                            totalExtras += parseFloat(data.extras) || 0;
+                            totalAtrasos += parseFloat(data.atrasos) || 0;
                         }
                     }
                     const saldoHoras = totalExtras - totalAtrasos;
@@ -543,7 +538,7 @@
                     document.getElementById('summary-extras').textContent = totalExtras.toFixed(2);
                     document.getElementById('summary-atrasos').textContent = totalAtrasos.toFixed(2);
                     saldoEl.textContent = saldoHoras.toFixed(2);
-                    saldoEl.className = ''; 
+                    saldoEl.className = 'saldo-neutro'; 
                     saldoEl.classList.add(saldoHoras > 0 ? 'saldo-positivo' : (saldoHoras < 0 ? 'saldo-negativo' : ''));
                 }
 
@@ -590,7 +585,6 @@
                         }
                         employeeSelect.value = state.funcionarioSelecionadoId;
                     }
-                    updateSupervisorStatusText();
                 }
 
                 function renderCalendar() {
@@ -599,74 +593,49 @@
                     MONTHS.forEach((monthName, monthIndex) => {
                         const monthContainer = document.createElement('div');
                         monthContainer.className = 'month-container';
-                        const title = document.createElement('h3');
-                        title.className = 'month-title';
-                        title.textContent = monthName;
-                        monthContainer.appendChild(title);
+                        monthContainer.innerHTML = `<h3 class="month-title">${monthName}</h3>`;
                         const monthGrid = document.createElement('div');
                         monthGrid.className = 'month-grid';
                         DAYS_OF_WEEK.forEach(day => {
-                            const headerCell = document.createElement('div');
-                            headerCell.className = 'header-cell';
-                            headerCell.textContent = day;
-                            monthGrid.appendChild(headerCell);
+                            monthGrid.innerHTML += `<div class="header-cell">${day}</div>`;
                         });
-                        const daysInMonth = new Date(selectedYear, monthIndex + 1, 0).getDate();
                         const firstDayOfWeek = (new Date(selectedYear, monthIndex, 1).getDay() + 6) % 7;
                         for (let i = 0; i < firstDayOfWeek; i++) {
-                            monthGrid.appendChild(document.createElement('div')).classList.add('day-cell', 'empty');
+                            monthGrid.innerHTML += '<div class="day-cell empty"></div>';
                         }
+                        const daysInMonth = new Date(selectedYear, monthIndex + 1, 0).getDate();
                         for (let day = 1; day <= daysInMonth; day++) {
-                            const dayCell = document.createElement('div');
-                            dayCell.classList.add('day-cell', 'valid-day');
-                            dayCell.textContent = day;
                             const dateString = `${selectedYear}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                            dayCell.dataset.date = dateString;
                             const dayOfWeek = new Date(selectedYear, monthIndex, day).getDay();
-                            if (dayOfWeek === 0 || dayOfWeek === 6) { dayCell.classList.add('weekend'); }
-
-                            if (funcionarioAtual && funcionarioAtual.calendario && funcionarioAtual.calendario[dateString]) {
+                            const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6) ? 'weekend' : '';
+                            
+                            let colorClass = '';
+                            let hasDetailsClass = '';
+                            if (funcionarioAtual?.calendario?.[dateString]) {
                                 const entry = funcionarioAtual.calendario[dateString];
                                 const data = typeof entry === 'string' ? { cor: entry } : entry;
-                                if (data.cor && data.cor !== 'default') { dayCell.classList.add(`color-${data.cor}`); }
-                                
-                                const hasDetails = data.cor !== 'default' || (parseFloat(data.extras) || 0) > 0 || (parseFloat(data.atrasos) || 0) > 0 || data.extrasObs || data.atrasosObs;
-                                if (hasDetails) {
-                                    dayCell.classList.add('has-hours');
+                                if (data.cor && data.cor !== 'default') colorClass = `color-${data.cor}`;
+                                if (colorClass || (parseFloat(data.extras) || 0) > 0 || (parseFloat(data.atrasos) || 0) > 0 || data.extrasObs || data.atrasosObs) {
+                                    hasDetailsClass = 'has-hours';
                                 }
                             }
-                            monthGrid.appendChild(dayCell);
+                            monthGrid.innerHTML += `<div class="day-cell valid-day ${isWeekend} ${colorClass} ${hasDetailsClass}" data-date="${dateString}">${day}</div>`;
                         }
                         monthContainer.appendChild(monthGrid);
                         calendarContainer.appendChild(monthContainer);
                     });
                 }
                 
-                // ========= FUNÇÃO CORRIGIDA para o clique em dispositivos de toque =========
                 function handleDayClick(event) {
+                    // Se um toque longo acabou de acontecer, não faz nada (não abre o modal).
+                    if (longPressTriggered) {
+                        longPressTriggered = false; // Reseta a flag e interrompe a função.
+                        return;
+                    }
                     const cell = event.target.closest('.valid-day');
                     if (!cell || !state.funcionarioSelecionadoId) return;
-
-                    if (isTouchDevice) {
-                        // Se o usuário tocar no mesmo dia que já tem o tooltip ativo, abre o modal
-                        if (activeTooltipCell === cell) {
-                            hideTooltip();
-                            activeTooltipCell = null;
-                            openEditModal(cell);
-                        } else {
-                            // Senão, é o primeiro toque: mostra o tooltip
-                            if (activeTooltipCell) { // esconde o tooltip anterior, se houver
-                                hideTooltip();
-                            }
-                            showTooltip({ target: cell });
-                            activeTooltipCell = cell; // define a célula atual como ativa
-                        }
-                    } else {
-                        // Comportamento para desktop: abre o modal no primeiro clique
-                        openEditModal(cell);
-                    }
+                    openEditModal(cell);
                 }
-                // =========================================================================
 
                 function openEditModal(cell) {
                     currentlyEditingDate = cell.dataset.date;
@@ -690,15 +659,10 @@
                     applyToAllContainer.classList.toggle('hidden', isReadOnly);
                     applyToAllCheckbox.checked = false;
 
-                    if (isReadOnly) {
-                        modalTitle.textContent = `Detalhes do Dia - ${new Date(currentlyEditingDate + 'T00:00:00').toLocaleDateString('pt-BR')}`;
-                        modalSaveBtn.classList.add('hidden');
-                        modalCancelBtn.textContent = 'Fechar';
-                    } else {
-                        modalTitle.textContent = `Editar Dia - ${new Date(currentlyEditingDate + 'T00:00:00').toLocaleDateString('pt-BR')}`;
-                        modalSaveBtn.classList.remove('hidden');
-                        modalCancelBtn.textContent = 'Cancelar';
-                    }
+                    modalTitle.textContent = isReadOnly ? `Detalhes do Dia` : `Editar Dia`;
+                    modalTitle.textContent += ` - ${new Date(currentlyEditingDate + 'T00:00:00').toLocaleDateString('pt-BR')}`;
+                    modalSaveBtn.classList.toggle('hidden', isReadOnly);
+                    modalCancelBtn.textContent = isReadOnly ? 'Fechar' : 'Cancelar';
                     
                     modal.classList.remove('hidden');
                 }
@@ -707,70 +671,51 @@
                     if (!currentlyEditingDate || !canEdit) return;
                     
                     const applyToAll = applyToAllCheckbox.checked;
-                    const newColor = modalColorSelect.value;
-                    const newExtras = parseFloat(modalExtraHours.value) || 0;
-                    const newAtrasos = parseFloat(modalLateHours.value) || 0;
-                    const newExtrasObs = modalExtraObs.value.trim();
-                    const newAtrasosObs = modalLateObs.value.trim();
-                    const isDefault = newColor === 'default' && newExtras === 0 && newAtrasos === 0 && !newExtrasObs && !newAtrasosObs;
-                    
-                    const updateData = { 
-                        cor: newColor, 
-                        extras: newExtras, 
-                        atrasos: newAtrasos,
-                        extrasObs: newExtrasObs,
-                        atrasosObs: newAtrasosObs
+                    const updateData = {
+                        cor: modalColorSelect.value,
+                        extras: parseFloat(modalExtraHours.value) || 0,
+                        atrasos: parseFloat(modalLateHours.value) || 0,
+                        extrasObs: modalExtraObs.value.trim(),
+                        atrasosObs: modalLateObs.value.trim()
                     };
+                    const isDefault = updateData.cor === 'default' && updateData.extras === 0 && updateData.atrasos === 0 && !updateData.extrasObs && !updateData.atrasosObs;
 
-                    const funcionariosToUpdate = applyToAll 
-                        ? state.funcionarios 
-                        : [state.funcionarios.find(f => f.id === state.funcionarioSelecionadoId)];
+                    const funcionariosToUpdate = applyToAll ? state.funcionarios : [state.funcionarios.find(f => f.id === state.funcionarioSelecionadoId)];
 
                     funcionariosToUpdate.forEach(func => {
                         if (!func) return;
-                        if (!func.calendario) { func.calendario = {}; }
-                        if (isDefault) {
-                            delete func.calendario[currentlyEditingDate];
-                        } else {
-                            func.calendario[currentlyEditingDate] = updateData;
-                        }
+                        if (!func.calendario) func.calendario = {};
+                        if (isDefault) delete func.calendario[currentlyEditingDate];
+                        else func.calendario[currentlyEditingDate] = updateData;
                     });
                     
                     saveState();
                     modal.classList.add('hidden');
-                    currentlyEditingDate = null;
                 }
                 
                 function handleAddEmployee() {
                     if (!canEdit) return; 
                     const name = newEmployeeInput.value.trim();
-                    const email = newEmployeeEmailInput.value.trim();
                     if (name) {
                         const newId = `func-${Date.now()}`;
-                        if (!state.funcionarios) { state.funcionarios = []; }
-
                         const currentYear = parseInt(yearSelect.value);
                         const holidaysForYear = NATIONAL_HOLIDAYS[currentYear] || {};
                         const newEmployeeCalendar = {};
                         for (const date in holidaysForYear) {
                             newEmployeeCalendar[date] = { cor: 'verde' };
                         }
-
-                        state.funcionarios.push({ id: newId, nome: name, email: email || '', calendario: newEmployeeCalendar });
+                        state.funcionarios.push({ id: newId, nome: name, email: newEmployeeEmailInput.value.trim() || '', calendario: newEmployeeCalendar });
                         state.funcionarioSelecionadoId = newId;
-                        
                         newEmployeeInput.value = '';
                         newEmployeeEmailInput.value = '';
                         saveState();
-                    } else { 
-                        alert('Por favor, insira um nome para o funcionário.'); 
-                    }
+                    } else { alert('Por favor, insira um nome para o funcionário.'); }
                 }
 
                 function handleRemoveEmployee() {
-                    if (!canEdit || !state.funcionarioSelecionadoId || !state.funcionarios || state.funcionarios.length === 0) return;
-                    const selectedEmployee = state.funcionarios.find(f => f.id === state.funcionarioSelecionadoId);
-                    if(confirm(`Tem certeza que deseja remover "${selectedEmployee.nome}"? Esta ação não pode ser desfeita.`)) {
+                    if (!canEdit || !state.funcionarioSelecionadoId || !state.funcionarios.length) return;
+                    const emp = state.funcionarios.find(f => f.id === state.funcionarioSelecionadoId);
+                    if(confirm(`Tem certeza de que deseja remover "${emp.nome}"? Esta ação não pode ser desfeita.`)) {
                         state.funcionarios = state.funcionarios.filter(f => f.id !== state.funcionarioSelecionadoId);
                         state.funcionarioSelecionadoId = state.funcionarios.length > 0 ? state.funcionarios[0].id : null;
                         saveState();
@@ -781,7 +726,6 @@
                     state.funcionarioSelecionadoId = employeeSelect.value;
                     renderCalendar();
                     calculateAndDisplaySummaries();
-                    updateSupervisorStatusText();
                 }
 
                 function handleYearChange() {
@@ -792,133 +736,74 @@
                 }
 
                 function showTooltip(event) {
-                    const dayCell = event.target.closest('.day-cell.has-hours, .day-cell.valid-day');
+                    const dayCell = event.target.closest('.day-cell');
                     if (!dayCell) return;
 
                     const dateStr = dayCell.dataset.date;
                     const funcionarioAtual = state.funcionarios.find(f => f.id === state.funcionarioSelecionadoId);
                     const dayData = funcionarioAtual?.calendario?.[dateStr] || { cor: 'default' };
-                    
+
                     const hasDetails = dayData.cor !== 'default' || (parseFloat(dayData.extras) || 0) > 0 || (parseFloat(dayData.atrasos) || 0) > 0 || dayData.extrasObs || dayData.atrasosObs;
-                    if (!hasDetails) return; // Não mostra o tooltip para dias normais sem dados
+                    if (!hasDetails) return;
 
                     const statusMap = { 'default': 'Normal', 'verde': 'Feriado Nacional', 'amarelo': 'Emenda', 'laranja': 'Feriado Estadual', 'vermelho': 'Falta', 'roxo': 'Afastado' };
-                    
-                    let content = `<h4>${new Date(dateStr + 'T00:00:00').toLocaleDateString('pt-BR', {day: '2-digit', month: 'long'})}</h4>`;
-                    content += `<p><span>Status:</span> <strong>${statusMap[dayData.cor]}</strong></p>`;
-                    
-                    if (dayData.extras > 0) {
-                        content += `<p><span>Horas Extras:</span> <strong>${dayData.extras}h</strong></p>`;
-                        if (dayData.extrasObs) { content += `<div class="obs">${dayData.extrasObs}</div>`; }
-                    }
-                    if (dayData.atrasos > 0) {
-                        content += `<p><span>Atraso:</span> <strong>${dayData.atrasos}h</strong></p>`;
-                        if (dayData.atrasosObs) { content += `<div class="obs">${dayData.atrasosObs}</div>`; }
-                    }
+                    let content = `<h4>${new Date(dateStr + 'T00:00:00').toLocaleDateString('pt-BR', {day: '2-digit', month: 'long'})}</h4><p><span>Status:</span> <strong>${statusMap[dayData.cor]}</strong></p>`;
+                    if (dayData.extras > 0) content += `<p><span>Horas Extras:</span> <strong>${dayData.extras}h</strong></p>${dayData.extrasObs ? `<div class="obs">${dayData.extrasObs}</div>` : ''}`;
+                    if (dayData.atrasos > 0) content += `<p><span>Atraso:</span> <strong>${dayData.atrasos}h</strong></p>${dayData.atrasosObs ? `<div class="obs">${dayData.atrasosObs}</div>` : ''}`;
                     
                     tooltip.innerHTML = content;
                     tooltip.classList.remove('hidden');
 
                     const rect = dayCell.getBoundingClientRect();
-                    const tooltipWidth = tooltip.offsetWidth;
-                    const tooltipHeight = tooltip.offsetHeight;
-                    let top = window.scrollY + rect.top - tooltipHeight - 10;
-                    if (top < window.scrollY + 10) { top = window.scrollY + rect.bottom + 10; }
-                    let left = window.scrollX + rect.left + (rect.width / 2) - (tooltipWidth / 2);
-                    const margin = 10;
-                    if (left < window.scrollX + margin) { left = window.scrollX + margin; }
-                    if ((left + tooltipWidth) > (window.scrollX + window.innerWidth - margin)) { left = window.scrollX + window.innerWidth - tooltipWidth - margin; }
+                    let top = window.scrollY + rect.top - tooltip.offsetHeight - 10;
+                    if (top < window.scrollY + 10) top = window.scrollY + rect.bottom + 10;
+                    let left = window.scrollX + rect.left + (rect.width - tooltip.offsetWidth) / 2;
+                    if (left < 10) left = 10;
+                    if ((left + tooltip.offsetWidth) > window.innerWidth) left = window.innerWidth - tooltip.offsetWidth - 10;
                     tooltip.style.left = `${left}px`;
                     tooltip.style.top = `${top}px`;
                 }
 
-                function hideTooltip() {
-                    tooltip.classList.add('hidden');
-                }
-                
-                function handleMakeSupervisor() {
-                    if (!canEdit || !state.funcionarioSelecionadoId) return;
-                    const funcionario = state.funcionarios.find(f => f.id === state.funcionarioSelecionadoId);
-                    if (!funcionario || !funcionario.email) {
-                        alert("Este funcionário não tem um e-mail de login associado e não pode ser tornado supervisor.");
-                        return;
-                    }
-                    const instructions = `Para alterar a função de "${funcionario.nome}" (${funcionario.email}):\n\n` +
-                                         `1. Vá para o seu console do Firebase e abra o Firestore Database.\n` +
-                                         `2. Encontre a coleção "user_roles".\n` +
-                                         `3. Você precisa do UID (ID do Usuário) deste e-mail. Você pode encontrá-lo na seção "Authentication" do Firebase.\n` +
-                                         `4. No Firestore, encontre o documento com o nome desse UID.\n` +
-                                         `5. Para torná-lo SUPERVISOR, mude o campo "role" para "supervisor".\n` +
-                                         `6. Para REMOVER o acesso de supervisor, mude o campo "role" para "viewer".\n\n` +
-                                         `Esta alteração manual é necessária por segurança.`;
-                    alert(instructions);
-                }
-
-                function updateSupervisorStatusText() {
-                    employeeStatusSpan.textContent = ''; 
-                    const funcionario = state.funcionarios.find(f => f.id === state.funcionarioSelecionadoId);
-                    if (canEdit && funcionario && funcionario.email) {
-                        employeeStatusSpan.textContent = '(Clique em "Tornar/Remover Supervisor" para gerenciar o acesso)';
-                    }
-                }
+                function hideTooltip() { tooltip.classList.add('hidden'); }
                 
                 populateHoursDatalist();
                 listenForChanges();
                 
-                changePasswordBtn.addEventListener('click', () => {
-                    newPasswordInput.value = '';
-                    confirmPasswordInput.value = '';
-                    passwordChangeError.textContent = '';
-                    changePasswordModal.classList.remove('hidden');
-                });
-
-                passwordCancelBtn.addEventListener('click', () => {
-                    changePasswordModal.classList.add('hidden');
-                });
-
-                passwordSaveBtn.addEventListener('click', () => {
-                    const newPassword = newPasswordInput.value;
-                    const confirmPassword = confirmPasswordInput.value;
-                    passwordChangeError.textContent = '';
-
-                    if (newPassword.length < 6) {
-                        passwordChangeError.textContent = 'A senha deve ter no mínimo 6 caracteres.';
-                        return;
-                    }
-                    if (newPassword !== confirmPassword) {
-                        passwordChangeError.textContent = 'As senhas não conferem.';
-                        return;
-                    }
-
-                    const user = firebase.auth().currentUser;
-                    if (user) {
-                        passwordSaveBtn.disabled = true;
-                        passwordChangeError.textContent = 'Alterando...';
-                        user.updatePassword(newPassword).then(() => {
-                            changePasswordModal.classList.add('hidden');
-                            alert('Senha alterada com sucesso!');
-                            passwordSaveBtn.disabled = false;
-                        }).catch((error) => {
-                            console.error("Erro ao alterar a senha:", error);
-                            passwordChangeError.textContent = 'Erro: Tente sair e logar novamente.';
-                            passwordSaveBtn.disabled = false;
-                        });
-                    }
-                });
-
+                // --- Event Listeners ---
                 calendarContainer.addEventListener('click', handleDayClick);
+                
+                // ========= LÓGICA DE INTERAÇÃO ATUALIZADA (MOUSE vs TOQUE) =========
+                if (isTouchDevice) {
+                    // Em dispositivos de toque (celular)
+                    calendarContainer.addEventListener('touchstart', (event) => {
+                        const cell = event.target.closest('.valid-day');
+                        if (!cell) return;
+                        
+                        longPressTriggered = false; // Reseta a flag a cada novo toque
+                        
+                        // Inicia um timer para detectar o toque longo
+                        longPressTimer = setTimeout(() => {
+                            longPressTriggered = true; // Marca que o toque longo aconteceu
+                            showTooltip({ target: cell }); // Mostra o tooltip
+                        }, 500); // Meio segundo para considerar toque longo
+                    });
 
-                if (!isTouchDevice) {
+                    calendarContainer.addEventListener('touchend', () => {
+                        clearTimeout(longPressTimer); // Cancela o timer se o dedo for tirado antes do tempo
+                    });
+                    
+                    document.addEventListener('touchstart', (event) => {
+                         if (!calendarContainer.contains(event.target) && !tooltip.contains(event.target)) {
+                            hideTooltip();
+                         }
+                    });
+
+                } else {
+                    // Em dispositivos com mouse (desktop)
                     calendarContainer.addEventListener('mouseover', showTooltip);
                     calendarContainer.addEventListener('mouseout', hideTooltip);
-                } else {
-                    document.addEventListener('click', (event) => {
-                        if (activeTooltipCell && !calendarContainer.contains(event.target)) {
-                            hideTooltip();
-                            activeTooltipCell = null;
-                        }
-                    });
                 }
+                // ====================================================================
 
                 addEmployeeBtn.addEventListener('click', handleAddEmployee);
                 removeEmployeeBtn.addEventListener('click', handleRemoveEmployee);
@@ -926,7 +811,6 @@
                 yearSelect.addEventListener('change', handleYearChange);
                 modalSaveBtn.addEventListener('click', handleSaveDay);
                 modalCancelBtn.addEventListener('click', () => modal.classList.add('hidden'));
-                makeSupervisorBtn.addEventListener('click', handleMakeSupervisor);
             }
         });
     </script>
