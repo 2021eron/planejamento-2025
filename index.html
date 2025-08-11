@@ -224,13 +224,15 @@
             <div id="view-only-notice" class="hidden">Você está no modo de visualização. As edições estão desativadas.</div>
 
             <div class="controls-container">
+                <!-- SEÇÃO ATUALIZADA COM O BOTÃO DE SUPERVISOR -->
                 <div class="employee-controls">
-                    <label for="employee-select">Funcionário:</label>
+                    <label for="employee-select">Funcionário: <span id="employee-status" style="font-weight:normal; font-style:italic;"></span></label>
                     <select id="employee-select"></select>
                     <input type="text" id="new-employee-name" placeholder="Nome do novo funcionário">
                     <input type="email" id="new-employee-email" placeholder="E-mail de login do funcionário (opcional)">
                     <button id="add-employee-btn">Adicionar</button>
                     <button id="remove-employee-btn">Remover Selecionado</button>
+                    <button id="make-supervisor-btn" class="hidden" style="background-color: var(--cor-amarelo); color: var(--cor-fundo);">Tornar/Remover Supervisor</button>
                 </div>
                 <div class="summary-container">
                     <div class="summary-item"> Folgas Úteis: <span id="summary-uteis">0</span> </div>
@@ -322,6 +324,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 
+    <!-- SCRIPT PRINCIPAL ATUALIZADO -->
     <script>
         const firebaseConfig = {
           apiKey: "AIzaSyBVAUP4agCEN6pVXWXOsQDG7Bzfile2OWU",
@@ -371,18 +374,20 @@
 
             logoutBtn.addEventListener('click', () => { auth.signOut().then(() => { location.reload(); }); });
 
+            // LÓGICA DE AUTENTICAÇÃO ATUALIZADA PARA TRÊS FUNÇÕES
             auth.onAuthStateChanged(user => {
                 if (user) {
                     const userRoleRef = db.collection("user_roles").doc(user.uid);
                     userRoleRef.get().then((doc) => {
-                        let role = 'viewer'; 
-                        if (doc.exists && doc.data().role === 'editor') {
-                            role = 'editor';
+                        let role = 'viewer'; // Padrão é visualizador
+                        if (doc.exists && doc.data().role) {
+                            // As funções podem ser 'editor', 'supervisor', ou 'viewer'
+                            role = doc.data().role;
                         }
                         showApp(role, user.email); 
                     }).catch((error) => {
                         console.error("Erro ao buscar função do usuário:", error);
-                        showApp('viewer', user.email);
+                        showApp('viewer', user.email); // Em caso de erro, assume a função mais restrita
                     });
                 } else {
                     showLogin();
@@ -392,8 +397,10 @@
             let stopListeningToFirebase = null; 
 
             function initializeAppLogic(userRole, userEmail) {
-                const isEditor = userRole === 'editor';
-                // ATUALIZAÇÃO: Detecta se é um dispositivo de toque (celular/tablet)
+                // NOVA LÓGICA DE PERMISSÕES
+                const canEdit = userRole === 'editor';
+                const canViewAll = userRole === 'editor' || userRole === 'supervisor';
+                
                 const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 
                 const NATIONAL_HOLIDAYS = {
@@ -418,6 +425,8 @@
                 const newEmployeeEmailInput = document.getElementById('new-employee-email');
                 const addEmployeeBtn = document.getElementById('add-employee-btn');
                 const removeEmployeeBtn = document.getElementById('remove-employee-btn');
+                const makeSupervisorBtn = document.getElementById('make-supervisor-btn');
+                const employeeStatusSpan = document.getElementById('employee-status');
                 
                 const modal = document.getElementById('day-editor-modal');
                 const modalTitle = document.getElementById('modal-title');
@@ -431,7 +440,7 @@
                 let currentlyEditingDate = null;
 
                 const tooltip = document.getElementById('day-tooltip');
-                let activeTooltipCell = null; // ATUALIZAÇÃO: Para controlar o tooltip no celular
+                let activeTooltipCell = null; 
                 
                 const changePasswordBtn = document.getElementById('change-password-btn');
                 const changePasswordModal = document.getElementById('change-password-modal');
@@ -460,21 +469,23 @@
                         datalist.appendChild(optionEl);
                     });
                 }
-
+                
                 function setupUIForRole() {
-                    newEmployeeInput.disabled = !isEditor;
-                    newEmployeeEmailInput.disabled = !isEditor;
-                    addEmployeeBtn.disabled = !isEditor;
-                    removeEmployeeBtn.disabled = !isEditor;
-                    employeeSelect.disabled = !isEditor;
+                    newEmployeeInput.disabled = !canEdit;
+                    newEmployeeEmailInput.disabled = !canEdit;
+                    addEmployeeBtn.disabled = !canEdit;
+                    removeEmployeeBtn.disabled = !canEdit;
+                    employeeSelect.disabled = !canViewAll;
                     yearSelect.disabled = false; 
+
+                    makeSupervisorBtn.classList.toggle('hidden', !canEdit);
+                    
                     const viewOnlyNotice = document.getElementById('view-only-notice');
-                    if (!isEditor) viewOnlyNotice.classList.remove('hidden');
-                    else viewOnlyNotice.classList.add('hidden');
+                    viewOnlyNotice.classList.toggle('hidden', canEdit);
                 }
 
                 function saveState() {
-                    if (!localStateLoaded || !isEditor || !docRef) return;
+                    if (!localStateLoaded || !canEdit || !docRef) return;
                     docRef.set(state).catch(error => console.error("Erro ao salvar no Firebase: ", error));
                 }
 
@@ -485,7 +496,7 @@
                     stopListeningToFirebase = docRef.onSnapshot(doc => {
                         if (doc.exists) { state = doc.data(); } 
                         else {
-                            if (isEditor) {
+                            if (canEdit) {
                                 const initialId = `func-${Date.now()}`;
                                 const holidaysForYear = NATIONAL_HOLIDAYS[selectedYear] || {};
                                 const initialCalendar = {};
@@ -542,23 +553,28 @@
                 function renderEmployeeControls() {
                     employeeSelect.innerHTML = '';
                     let funcionariosParaExibir = [];
-                    if (isEditor) { funcionariosParaExibir = state.funcionarios || []; } 
-                    else {
-                        const funcionarioDoUsuario = (state.funcionarios || []).find(f => f.email === userEmail);
+                    if (canViewAll) { 
+                        funcionariosParaExibir = state.funcionarios || []; 
+                    } else {
+                        const funcionarioDoUsuario = (state.funcionarios || []).find(f => f.email && f.email.toLowerCase() === userEmail.toLowerCase());
                         if (funcionarioDoUsuario) {
                             funcionariosParaExibir = [funcionarioDoUsuario];
                             state.funcionarioSelecionadoId = funcionarioDoUsuario.id;
                         }
                     }
+                    
                     if (funcionariosParaExibir.length === 0) {
                         const option = document.createElement('option');
-                        option.textContent = isEditor ? "Adicione um funcionário" : "Nenhum planejamento para este ano";
+                        option.textContent = canEdit ? "Adicione um funcionário" : "Nenhum planejamento atribuído";
                         employeeSelect.appendChild(option);
                         employeeSelect.disabled = true; 
                         removeEmployeeBtn.disabled = true;
+                        makeSupervisorBtn.disabled = true;
                     } else {
-                        employeeSelect.disabled = !isEditor; 
-                        removeEmployeeBtn.disabled = !isEditor;
+                        employeeSelect.disabled = !canViewAll; 
+                        removeEmployeeBtn.disabled = !canEdit;
+                        makeSupervisorBtn.disabled = !canEdit;
+
                         funcionariosParaExibir.forEach(func => {
                             const option = document.createElement('option');
                             option.value = func.id;
@@ -570,6 +586,7 @@
                         }
                         employeeSelect.value = state.funcionarioSelecionadoId;
                     }
+                    updateSupervisorStatusText();
                 }
 
                 function renderCalendar() {
@@ -621,22 +638,18 @@
                     });
                 }
                 
-                // ATUALIZAÇÃO: Função de clique agora diferencia desktop e mobile
                 function handleDayClick(event) {
                     const cell = event.target.closest('.valid-day');
                     if (!cell || !state.funcionarioSelecionadoId) return;
 
-                    // Em dispositivo de toque, apenas mostra/esconde o tooltip.
                     if (isTouchDevice) {
                         toggleTooltipOnTap(cell);
-                        return; // Impede a abertura do modal
+                        return; 
                     }
                     
-                    // Em desktop, abre o modal de edição (comportamento original)
                     openEditModal(cell);
                 }
 
-                // ATUALIZAÇÃO: Lógica de abrir o modal foi movida para sua própria função
                 function openEditModal(cell) {
                     currentlyEditingDate = cell.dataset.date;
                     const funcionario = state.funcionarios.find(f => f.id === state.funcionarioSelecionadoId);
@@ -649,7 +662,7 @@
                     modalExtraObs.value = data.extrasObs || '';
                     modalLateObs.value = data.atrasosObs || '';
 
-                    const isReadOnly = !isEditor;
+                    const isReadOnly = !canEdit;
                     modalColorSelect.disabled = isReadOnly;
                     modalExtraHours.disabled = isReadOnly;
                     modalExtraObs.disabled = isReadOnly;
@@ -670,7 +683,7 @@
                 }
 
                 function handleSaveDay() {
-                    if (!currentlyEditingDate || !isEditor) return;
+                    if (!currentlyEditingDate || !canEdit) return;
                     const funcionario = state.funcionarios.find(f => f.id === state.funcionarioSelecionadoId);
                     if (!funcionario) return;
                     if (!funcionario.calendario) { funcionario.calendario = {}; }
@@ -699,13 +712,13 @@
                 }
                 
                 function handleAddEmployee() {
-                    if (!isEditor) return; 
+                    if (!canEdit) return; 
                     const name = newEmployeeInput.value.trim();
                     const email = newEmployeeEmailInput.value.trim();
                     if (name) {
                         const newId = `func-${Date.now()}`;
                         if (!state.funcionarios) { state.funcionarios = []; }
-                        state.funcionarios.push({ id: newId, nome: name, email: email, calendario: {} });
+                        state.funcionarios.push({ id: newId, nome: name, email: email || '', calendario: {} });
                         state.funcionarioSelecionadoId = newId;
                         newEmployeeInput.value = '';
                         newEmployeeEmailInput.value = '';
@@ -714,7 +727,7 @@
                 }
 
                 function handleRemoveEmployee() {
-                    if (!isEditor || !state.funcionarioSelecionadoId || !state.funcionarios || state.funcionarios.length === 0) return;
+                    if (!canEdit || !state.funcionarioSelecionadoId || !state.funcionarios || state.funcionarios.length === 0) return;
                     const selectedEmployee = state.funcionarios.find(f => f.id === state.funcionarioSelecionadoId);
                     if(confirm(`Tem certeza que deseja remover "${selectedEmployee.nome}"? Esta ação não pode ser desfeita.`)) {
                         state.funcionarios = state.funcionarios.filter(f => f.id !== state.funcionarioSelecionadoId);
@@ -727,6 +740,7 @@
                     state.funcionarioSelecionadoId = employeeSelect.value;
                     renderCalendar();
                     calculateAndDisplaySummaries();
+                    updateSupervisorStatusText();
                 }
 
                 function handleYearChange() {
@@ -735,8 +749,7 @@
                     employeeSelect.innerHTML = '';
                     listenForChanges();
                 }
-
-                // ATUALIZAÇÃO: Nova função para controlar o tooltip no toque
+                
                 function toggleTooltipOnTap(cell) {
                     if (activeTooltipCell === cell) {
                         hideTooltip();
@@ -746,11 +759,11 @@
                     if (activeTooltipCell) {
                         hideTooltip();
                     }
-                    showTooltip({ target: cell }); // Simula um evento para a função showTooltip
+                    showTooltip({ target: cell }); 
                     activeTooltipCell = cell;
                 }
 
-                               function showTooltip(event) {
+                function showTooltip(event) {
                     const dayCell = event.target.closest('.day-cell.has-hours');
                     if (!dayCell) return;
 
@@ -784,31 +797,64 @@
                     const tooltipWidth = tooltip.offsetWidth;
                     const tooltipHeight = tooltip.offsetHeight;
 
-                    // Lógica vertical (mantida): posiciona acima ou abaixo da célula
                     let top = window.scrollY + rect.top - tooltipHeight - 10;
                     if (top < window.scrollY + 10) {
                         top = window.scrollY + rect.bottom + 10;
                     }
 
-                    // --- NOVA LÓGICA DE POSICIONAMENTO HORIZONTAL ---
-                    // 1. Tenta centralizar em relação à célula
                     let left = window.scrollX + rect.left + (rect.width / 2) - (tooltipWidth / 2);
                     
-                    // 2. Garante que o tooltip não saia da tela
-                    const margin = 10; // Margem de 10px das bordas da tela
+                    const margin = 10;
                     if (left < window.scrollX + margin) {
-                        left = window.scrollX + margin; // Impede de sair pela esquerda
+                        left = window.scrollX + margin;
                     }
                     if ((left + tooltipWidth) > (window.scrollX + window.innerWidth - margin)) {
-                        left = window.scrollX + window.innerWidth - tooltipWidth - margin; // Impede de sair pela direita
+                        left = window.scrollX + window.innerWidth - tooltipWidth - margin;
                     }
-                    // --- FIM DA NOVA LÓGICA ---
 
                     tooltip.style.left = `${left}px`;
                     tooltip.style.top = `${top}px`;
                 }
+
                 function hideTooltip() {
                     tooltip.classList.add('hidden');
+                }
+                
+                // NOVA FUNÇÃO PARA GERENCIAR SUPERVISORES
+                function handleMakeSupervisor() {
+                    if (!canEdit || !state.funcionarioSelecionadoId) return;
+
+                    const funcionario = state.funcionarios.find(f => f.id === state.funcionarioSelecionadoId);
+                    if (!funcionario || !funcionario.email) {
+                        alert("Este funcionário não tem um e-mail de login associado e não pode ser tornado supervisor.");
+                        return;
+                    }
+                    
+                    // Devido a limitações de segurança do Firebase SDK no cliente, não é possível buscar
+                    // o UID de um usuário a partir do e-mail. A solução correta envolve uma Cloud Function.
+                    // Como alternativa, instruímos o administrador a fazer a alteração manualmente.
+                    const instructions = `Para alterar a função de "${funcionario.nome}" (${funcionario.email}):\n\n` +
+                                         `1. Vá para o seu console do Firebase e abra o Firestore Database.\n` +
+                                         `2. Encontre a coleção "user_roles".\n` +
+                                         `3. Você precisa do UID (ID do Usuário) deste e-mail. Você pode encontrá-lo na seção "Authentication" do Firebase.\n` +
+                                         `4. No Firestore, encontre o documento com o nome desse UID.\n` +
+                                         `5. Para torná-lo SUPERVISOR, mude o campo "role" para "supervisor".\n` +
+                                         `6. Para REMOVER o acesso de supervisor, mude o campo "role" para "viewer".\n\n` +
+                                         `Esta alteração manual é necessária por segurança.`;
+                    
+                    alert(instructions);
+                }
+
+                // NOVA FUNÇÃO para atualizar o texto de status
+                function updateSupervisorStatusText() {
+                    employeeStatusSpan.textContent = ''; // Limpa o status
+                    const funcionario = state.funcionarios.find(f => f.id === state.funcionarioSelecionadoId);
+
+                    // Esta função não pode verificar o status real no Firestore sem o UID.
+                    // Ela serve como um lembrete visual de que a funcionalidade existe.
+                    if (canEdit && funcionario && funcionario.email) {
+                        employeeStatusSpan.textContent = '(Clique em "Tornar/Remover Supervisor" para gerenciar o acesso)';
+                    }
                 }
                 
                 populateHoursDatalist();
@@ -858,12 +904,10 @@
                 // --- Event Listeners ATUALIZADOS ---
                 calendarContainer.addEventListener('click', handleDayClick);
 
-                // Adiciona listeners de hover apenas se NÃO for um dispositivo de toque
                 if (!isTouchDevice) {
                     calendarContainer.addEventListener('mouseover', showTooltip);
                     calendarContainer.addEventListener('mouseout', hideTooltip);
                 } else {
-                    // Adiciona um listener para fechar o tooltip ao tocar fora
                     document.addEventListener('click', (event) => {
                         if (activeTooltipCell && !calendarContainer.contains(event.target)) {
                             hideTooltip();
@@ -878,6 +922,7 @@
                 yearSelect.addEventListener('change', handleYearChange);
                 modalSaveBtn.addEventListener('click', handleSaveDay);
                 modalCancelBtn.addEventListener('click', () => modal.classList.add('hidden'));
+                makeSupervisorBtn.addEventListener('click', handleMakeSupervisor);
             }
         });
     </script>
