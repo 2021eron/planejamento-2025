@@ -431,6 +431,7 @@
                 const addEmployeeBtn = document.getElementById('add-employee-btn');
                 const removeEmployeeBtn = document.getElementById('remove-employee-btn');
                 const makeSupervisorBtn = document.getElementById('make-supervisor-btn');
+                const employeeStatusSpan = document.getElementById('employee-status');
                 
                 const modal = document.getElementById('day-editor-modal');
                 const modalTitle = document.getElementById('modal-title');
@@ -447,6 +448,14 @@
 
                 const tooltip = document.getElementById('day-tooltip');
                 
+                const changePasswordBtn = document.getElementById('change-password-btn');
+                const changePasswordModal = document.getElementById('change-password-modal');
+                const newPasswordInput = document.getElementById('new-password');
+                const confirmPasswordInput = document.getElementById('confirm-password');
+                const passwordSaveBtn = document.getElementById('password-save-btn');
+                const passwordCancelBtn = document.getElementById('password-cancel-btn');
+                const passwordChangeError = document.getElementById('password-change-error');
+
                 let state = { funcionarios: [], funcionarioSelecionadoId: null };
                 let localStateLoaded = false;
                 
@@ -538,7 +547,7 @@
                     document.getElementById('summary-extras').textContent = totalExtras.toFixed(2);
                     document.getElementById('summary-atrasos').textContent = totalAtrasos.toFixed(2);
                     saldoEl.textContent = saldoHoras.toFixed(2);
-                    saldoEl.className = 'saldo-neutro'; 
+                    saldoEl.className = ''; 
                     saldoEl.classList.add(saldoHoras > 0 ? 'saldo-positivo' : (saldoHoras < 0 ? 'saldo-negativo' : ''));
                 }
 
@@ -585,6 +594,7 @@
                         }
                         employeeSelect.value = state.funcionarioSelecionadoId;
                     }
+                    updateSupervisorStatusText();
                 }
 
                 function renderCalendar() {
@@ -596,13 +606,10 @@
                         monthContainer.innerHTML = `<h3 class="month-title">${monthName}</h3>`;
                         const monthGrid = document.createElement('div');
                         monthGrid.className = 'month-grid';
-                        DAYS_OF_WEEK.forEach(day => {
-                            monthGrid.innerHTML += `<div class="header-cell">${day}</div>`;
-                        });
+                        let gridHtml = '';
+                        DAYS_OF_WEEK.forEach(day => { gridHtml += `<div class="header-cell">${day}</div>`; });
                         const firstDayOfWeek = (new Date(selectedYear, monthIndex, 1).getDay() + 6) % 7;
-                        for (let i = 0; i < firstDayOfWeek; i++) {
-                            monthGrid.innerHTML += '<div class="day-cell empty"></div>';
-                        }
+                        for (let i = 0; i < firstDayOfWeek; i++) { gridHtml += '<div class="day-cell empty"></div>'; }
                         const daysInMonth = new Date(selectedYear, monthIndex + 1, 0).getDate();
                         for (let day = 1; day <= daysInMonth; day++) {
                             const dateString = `${selectedYear}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -619,17 +626,17 @@
                                     hasDetailsClass = 'has-hours';
                                 }
                             }
-                            monthGrid.innerHTML += `<div class="day-cell valid-day ${isWeekend} ${colorClass} ${hasDetailsClass}" data-date="${dateString}">${day}</div>`;
+                            gridHtml += `<div class="day-cell valid-day ${isWeekend} ${colorClass} ${hasDetailsClass}" data-date="${dateString}">${day}</div>`;
                         }
+                        monthGrid.innerHTML = gridHtml;
                         monthContainer.appendChild(monthGrid);
                         calendarContainer.appendChild(monthContainer);
                     });
                 }
                 
                 function handleDayClick(event) {
-                    // Se um toque longo acabou de acontecer, não faz nada (não abre o modal).
                     if (longPressTriggered) {
-                        longPressTriggered = false; // Reseta a flag e interrompe a função.
+                        longPressTriggered = false; 
                         return;
                     }
                     const cell = event.target.closest('.valid-day');
@@ -659,8 +666,7 @@
                     applyToAllContainer.classList.toggle('hidden', isReadOnly);
                     applyToAllCheckbox.checked = false;
 
-                    modalTitle.textContent = isReadOnly ? `Detalhes do Dia` : `Editar Dia`;
-                    modalTitle.textContent += ` - ${new Date(currentlyEditingDate + 'T00:00:00').toLocaleDateString('pt-BR')}`;
+                    modalTitle.textContent = isReadOnly ? `Detalhes do Dia - ${new Date(currentlyEditingDate + 'T00:00:00').toLocaleDateString('pt-BR')}` : `Editar Dia - ${new Date(currentlyEditingDate + 'T00:00:00').toLocaleDateString('pt-BR')}`;
                     modalSaveBtn.classList.toggle('hidden', isReadOnly);
                     modalCancelBtn.textContent = isReadOnly ? 'Fechar' : 'Cancelar';
                     
@@ -726,6 +732,7 @@
                     state.funcionarioSelecionadoId = employeeSelect.value;
                     renderCalendar();
                     calculateAndDisplaySummaries();
+                    updateSupervisorStatusText();
                 }
 
                 function handleYearChange() {
@@ -733,6 +740,32 @@
                     calendarContainer.innerHTML = '<p style="text-align:center;">Carregando dados do novo ano...</p>';
                     employeeSelect.innerHTML = '';
                     listenForChanges();
+                }
+                
+                function handleMakeSupervisor() {
+                    if (!canEdit || !state.funcionarioSelecionadoId) return;
+                    const funcionario = state.funcionarios.find(f => f.id === state.funcionarioSelecionadoId);
+                    if (!funcionario || !funcionario.email) {
+                        alert("Este funcionário não tem um e-mail de login associado e não pode ser tornado supervisor.");
+                        return;
+                    }
+                    const instructions = `Para alterar a função de "${funcionario.nome}" (${funcionario.email}):\n\n` +
+                                         `1. Vá para o seu console do Firebase e abra o Firestore Database.\n` +
+                                         `2. Encontre a coleção "user_roles".\n` +
+                                         `3. Você precisa do UID (ID do Usuário) deste e-mail. Você pode encontrá-lo na seção "Authentication" do Firebase.\n` +
+                                         `4. No Firestore, encontre o documento com o nome desse UID.\n` +
+                                         `5. Para torná-lo SUPERVISOR, mude o campo "role" para "supervisor".\n` +
+                                         `6. Para REMOVER o acesso de supervisor, mude o campo "role" para "viewer".\n\n` +
+                                         `Esta alteração manual é necessária por segurança.`;
+                    alert(instructions);
+                }
+
+                function updateSupervisorStatusText() {
+                    employeeStatusSpan.textContent = ''; 
+                    const funcionario = state.funcionarios.find(f => f.id === state.funcionarioSelecionadoId);
+                    if (canEdit && funcionario && funcionario.email) {
+                        employeeStatusSpan.textContent = '(Clique em "Tornar/Remover Supervisor" para gerenciar o acesso)';
+                    }
                 }
 
                 function showTooltip(event) {
@@ -758,8 +791,9 @@
                     let top = window.scrollY + rect.top - tooltip.offsetHeight - 10;
                     if (top < window.scrollY + 10) top = window.scrollY + rect.bottom + 10;
                     let left = window.scrollX + rect.left + (rect.width - tooltip.offsetWidth) / 2;
-                    if (left < 10) left = 10;
-                    if ((left + tooltip.offsetWidth) > window.innerWidth) left = window.innerWidth - tooltip.offsetWidth - 10;
+                    const margin = 10;
+                    if (left < margin) left = margin;
+                    if ((left + tooltip.offsetWidth) > (window.innerWidth - margin)) left = window.innerWidth - tooltip.offsetWidth - margin;
                     tooltip.style.left = `${left}px`;
                     tooltip.style.top = `${top}px`;
                 }
@@ -770,47 +804,86 @@
                 listenForChanges();
                 
                 // --- Event Listeners ---
+                
                 calendarContainer.addEventListener('click', handleDayClick);
                 
-                // ========= LÓGICA DE INTERAÇÃO ATUALIZADA (MOUSE vs TOQUE) =========
                 if (isTouchDevice) {
-                    // Em dispositivos de toque (celular)
                     calendarContainer.addEventListener('touchstart', (event) => {
                         const cell = event.target.closest('.valid-day');
                         if (!cell) return;
-                        
-                        longPressTriggered = false; // Reseta a flag a cada novo toque
-                        
-                        // Inicia um timer para detectar o toque longo
+                        longPressTriggered = false; 
                         longPressTimer = setTimeout(() => {
-                            longPressTriggered = true; // Marca que o toque longo aconteceu
-                            showTooltip({ target: cell }); // Mostra o tooltip
-                        }, 500); // Meio segundo para considerar toque longo
-                    });
+                            longPressTriggered = true;
+                            showTooltip({ target: cell });
+                        }, 500); 
+                    }, { passive: true });
 
-                    calendarContainer.addEventListener('touchend', () => {
-                        clearTimeout(longPressTimer); // Cancela o timer se o dedo for tirado antes do tempo
-                    });
+                    calendarContainer.addEventListener('touchend', () => clearTimeout(longPressTimer));
+                    calendarContainer.addEventListener('touchmove', () => clearTimeout(longPressTimer)); // Cancela com o arrastar
                     
                     document.addEventListener('touchstart', (event) => {
                          if (!calendarContainer.contains(event.target) && !tooltip.contains(event.target)) {
                             hideTooltip();
                          }
-                    });
+                    }, { passive: true });
 
                 } else {
-                    // Em dispositivos com mouse (desktop)
                     calendarContainer.addEventListener('mouseover', showTooltip);
                     calendarContainer.addEventListener('mouseout', hideTooltip);
                 }
-                // ====================================================================
-
+                
+                // Botões de funcionário
                 addEmployeeBtn.addEventListener('click', handleAddEmployee);
                 removeEmployeeBtn.addEventListener('click', handleRemoveEmployee);
                 employeeSelect.addEventListener('change', handleSelectEmployee);
                 yearSelect.addEventListener('change', handleYearChange);
+                makeSupervisorBtn.addEventListener('click', handleMakeSupervisor); // Listener restaurado
+
+                // Botões do Modal do Dia
                 modalSaveBtn.addEventListener('click', handleSaveDay);
                 modalCancelBtn.addEventListener('click', () => modal.classList.add('hidden'));
+                
+                // Botões do Modal de Senha (Listeners restaurados)
+                changePasswordBtn.addEventListener('click', () => {
+                    newPasswordInput.value = '';
+                    confirmPasswordInput.value = '';
+                    passwordChangeError.textContent = '';
+                    changePasswordModal.classList.remove('hidden');
+                });
+
+                passwordCancelBtn.addEventListener('click', () => {
+                    changePasswordModal.classList.add('hidden');
+                });
+
+                passwordSaveBtn.addEventListener('click', () => {
+                    const newPassword = newPasswordInput.value;
+                    const confirmPassword = confirmPasswordInput.value;
+                    passwordChangeError.textContent = '';
+
+                    if (newPassword.length < 6) {
+                        passwordChangeError.textContent = 'A senha deve ter no mínimo 6 caracteres.';
+                        return;
+                    }
+                    if (newPassword !== confirmPassword) {
+                        passwordChangeError.textContent = 'As senhas não conferem.';
+                        return;
+                    }
+
+                    const user = firebase.auth().currentUser;
+                    if (user) {
+                        passwordSaveBtn.disabled = true;
+                        passwordChangeError.textContent = 'Alterando...';
+                        user.updatePassword(newPassword).then(() => {
+                            changePasswordModal.classList.add('hidden');
+                            alert('Senha alterada com sucesso!');
+                        }).catch((error) => {
+                            console.error("Erro ao alterar a senha:", error);
+                            passwordChangeError.textContent = 'Erro: Tente sair e logar novamente.';
+                        }).finally(() => {
+                            passwordSaveBtn.disabled = false;
+                        });
+                    }
+                });
             }
         });
     </script>
