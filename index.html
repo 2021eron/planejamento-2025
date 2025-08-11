@@ -151,26 +151,13 @@
             cursor: not-allowed;
         }
 
-        /* NOVO: Estilo para o grupo "Aplicar a todos" */
         .modal-apply-all-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 20px;
-            padding: 10px;
-            background-color: var(--cor-fundo);
-            border-radius: 5px;
+            display: flex; align-items: center; gap: 10px; margin-top: 20px;
+            padding: 10px; background-color: var(--cor-fundo); border-radius: 5px;
             border: 1px solid var(--cor-destaque);
         }
-        .modal-apply-all-group label {
-            margin-bottom: 0; /* Remove a margem padrão do label dentro deste grupo */
-            font-weight: normal;
-            cursor: pointer;
-        }
-        .modal-apply-all-group input[type="checkbox"] {
-            width: auto; /* Permite que o checkbox tenha seu tamanho natural */
-            cursor: pointer;
-        }
+        .modal-apply-all-group label { margin-bottom: 0; font-weight: normal; cursor: pointer; }
+        .modal-apply-all-group input[type="checkbox"] { width: auto; cursor: pointer; }
 
         .modal-buttons { display: flex; gap: 10px; justify-content: flex-end; margin-top: 25px; }
         .modal-buttons button {
@@ -181,19 +168,16 @@
         #modal-save-btn, #password-save-btn { background-color: var(--cor-destaque); color: white; }
         #modal-cancel-btn, #password-cancel-btn { background-color: #6c757d; color: white; }
         
-        /* NOVO: Estilo para inputs lado a lado no modal */
         .input-row { display: flex; gap: 10px; }
         .input-row .input-item { display: flex; flex-direction: column; flex-grow: 1; }
         .input-row .input-item:first-child { flex-basis: 35%; }
         .input-row .input-item:last-child { flex-basis: 65%; }
 
-        /* NOVO: Estilos do Tooltip */
         #day-tooltip {
             position: absolute; z-index: 3000; background-color: #2c3e50; color: white;
             border: 1px solid #769fcd; border-radius: 8px; padding: 12px; font-size: 0.95em;
             width: 250px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            pointer-events: none; /* Impede que o tooltip interfira com o mouse */
-            transition: opacity 0.1s ease-in-out;
+            pointer-events: none; transition: opacity 0.1s ease-in-out;
         }
         #day-tooltip h4 { margin-top: 0; margin-bottom: 10px; font-size: 1.1em; color: var(--cor-amarelo); border-bottom: 1px solid #4a6582; padding-bottom: 8px; }
         #day-tooltip p { margin: 6px 0; display: flex; justify-content: space-between; align-items: center;}
@@ -245,7 +229,6 @@
             <div id="view-only-notice" class="hidden">Você está no modo de visualização. As edições estão desativadas.</div>
 
             <div class="controls-container">
-                <!-- SEÇÃO ATUALIZADA COM O BOTÃO DE SUPERVISOR -->
                 <div class="employee-controls">
                     <label for="employee-select">Funcionário: <span id="employee-status" style="font-weight:normal; font-style:italic;"></span></label>
                     <select id="employee-select"></select>
@@ -269,7 +252,7 @@
         </div>
     </div>
 
-    <!-- MODAL PARA EDITAR O DIA (Estrutura ATUALIZADA) -->
+    <!-- MODAL PARA EDITAR O DIA -->
     <div id="day-editor-modal" class="hidden">
         <div class="modal-content">
             <h3 id="modal-title">Editar Dia</h3>
@@ -309,7 +292,6 @@
                 </div>
             </div>
             
-            <!-- NOVO: Checkbox para aplicar a todos -->
             <div id="apply-to-all-container" class="modal-apply-all-group hidden">
                  <input type="checkbox" id="apply-to-all-checkbox">
                  <label for="apply-to-all-checkbox">Aplicar esta alteração a todos os funcionários.</label>
@@ -342,9 +324,7 @@
         </div>
     </div>
 
-    <!-- NOVO: Elemento do Tooltip -->
     <div id="day-tooltip" class="hidden"></div>
-
     <datalist id="hours-datalist"></datalist>
 
     <!-- SCRIPTS DO FIREBASE -->
@@ -352,7 +332,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 
-    <!-- SCRIPT PRINCIPAL ATUALIZADO -->
+    <!-- SCRIPT PRINCIPAL -->
     <script>
         const firebaseConfig = {
           apiKey: "AIzaSyBVAUP4agCEN6pVXWXOsQDG7Bzfile2OWU",
@@ -402,20 +382,18 @@
 
             logoutBtn.addEventListener('click', () => { auth.signOut().then(() => { location.reload(); }); });
 
-            // LÓGICA DE AUTENTICAÇÃO ATUALIZADA PARA TRÊS FUNÇÕES
             auth.onAuthStateChanged(user => {
                 if (user) {
                     const userRoleRef = db.collection("user_roles").doc(user.uid);
                     userRoleRef.get().then((doc) => {
-                        let role = 'viewer'; // Padrão é visualizador
+                        let role = 'viewer'; 
                         if (doc.exists && doc.data().role) {
-                            // As funções podem ser 'editor', 'supervisor', ou 'viewer'
                             role = doc.data().role;
                         }
                         showApp(role, user.email); 
                     }).catch((error) => {
                         console.error("Erro ao buscar função do usuário:", error);
-                        showApp('viewer', user.email); // Em caso de erro, assume a função mais restrita
+                        showApp('viewer', user.email);
                     });
                 } else {
                     showLogin();
@@ -425,7 +403,6 @@
             let stopListeningToFirebase = null; 
 
             function initializeAppLogic(userRole, userEmail) {
-                // NOVA LÓGICA DE PERMISSÕES
                 const canEdit = userRole === 'editor';
                 const canViewAll = userRole === 'editor' || userRole === 'supervisor';
                 
@@ -507,11 +484,8 @@
                     removeEmployeeBtn.disabled = !canEdit;
                     employeeSelect.disabled = !canViewAll;
                     yearSelect.disabled = false; 
-
                     makeSupervisorBtn.classList.toggle('hidden', !canEdit);
-                    
-                    const viewOnlyNotice = document.getElementById('view-only-notice');
-                    viewOnlyNotice.classList.toggle('hidden', canEdit);
+                    document.getElementById('view-only-notice').classList.toggle('hidden', canEdit);
                 }
 
                 function saveState() {
@@ -668,19 +642,32 @@
                     });
                 }
                 
+                // ========= FUNÇÃO CORRIGIDA para o clique em dispositivos de toque =========
                 function handleDayClick(event) {
                     const cell = event.target.closest('.valid-day');
                     if (!cell || !state.funcionarioSelecionadoId) return;
 
                     if (isTouchDevice) {
-                        toggleTooltipOnTap(cell);
-                        return; 
+                        // Se o usuário tocar no mesmo dia que já tem o tooltip ativo, abre o modal
+                        if (activeTooltipCell === cell) {
+                            hideTooltip();
+                            activeTooltipCell = null;
+                            openEditModal(cell);
+                        } else {
+                            // Senão, é o primeiro toque: mostra o tooltip
+                            if (activeTooltipCell) { // esconde o tooltip anterior, se houver
+                                hideTooltip();
+                            }
+                            showTooltip({ target: cell });
+                            activeTooltipCell = cell; // define a célula atual como ativa
+                        }
+                    } else {
+                        // Comportamento para desktop: abre o modal no primeiro clique
+                        openEditModal(cell);
                     }
-                    
-                    openEditModal(cell);
                 }
+                // =========================================================================
 
-                // ========= FUNÇÃO MODIFICADA para controlar o checkbox "Aplicar a todos" =========
                 function openEditModal(cell) {
                     currentlyEditingDate = cell.dataset.date;
                     const funcionario = state.funcionarios.find(f => f.id === state.funcionarioSelecionadoId);
@@ -700,9 +687,8 @@
                     modalLateHours.disabled = isReadOnly;
                     modalLateObs.disabled = isReadOnly;
                     
-                    // Mostra ou esconde o container do checkbox com base na permissão de edição
                     applyToAllContainer.classList.toggle('hidden', isReadOnly);
-                    applyToAllCheckbox.checked = false; // Garante que o checkbox comece desmarcado
+                    applyToAllCheckbox.checked = false;
 
                     if (isReadOnly) {
                         modalTitle.textContent = `Detalhes do Dia - ${new Date(currentlyEditingDate + 'T00:00:00').toLocaleDateString('pt-BR')}`;
@@ -716,14 +702,11 @@
                     
                     modal.classList.remove('hidden');
                 }
-                // ====================================================================================
 
-                // ========= FUNÇÃO MODIFICADA para salvar para um ou todos os funcionários =========
                 function handleSaveDay() {
                     if (!currentlyEditingDate || !canEdit) return;
                     
                     const applyToAll = applyToAllCheckbox.checked;
-
                     const newColor = modalColorSelect.value;
                     const newExtras = parseFloat(modalExtraHours.value) || 0;
                     const newAtrasos = parseFloat(modalLateHours.value) || 0;
@@ -731,48 +714,32 @@
                     const newAtrasosObs = modalLateObs.value.trim();
                     const isDefault = newColor === 'default' && newExtras === 0 && newAtrasos === 0 && !newExtrasObs && !newAtrasosObs;
                     
-                    // Se a opção "Aplicar a todos" estiver marcada
-                    if (applyToAll) {
-                        state.funcionarios.forEach(func => {
-                            if (!func.calendario) { func.calendario = {}; }
-                            
-                            if (isDefault) {
-                                delete func.calendario[currentlyEditingDate];
-                            } else {
-                                func.calendario[currentlyEditingDate] = { 
-                                    cor: newColor, 
-                                    extras: newExtras, 
-                                    atrasos: newAtrasos,
-                                    extrasObs: newExtrasObs,
-                                    atrasosObs: newAtrasosObs
-                                };
-                            }
-                        });
-                    } 
-                    // Caso contrário, aplica apenas ao funcionário selecionado (comportamento original)
-                    else {
-                        const funcionario = state.funcionarios.find(f => f.id === state.funcionarioSelecionadoId);
-                        if (!funcionario) return;
-                        if (!funcionario.calendario) { funcionario.calendario = {}; }
+                    const updateData = { 
+                        cor: newColor, 
+                        extras: newExtras, 
+                        atrasos: newAtrasos,
+                        extrasObs: newExtrasObs,
+                        atrasosObs: newAtrasosObs
+                    };
 
+                    const funcionariosToUpdate = applyToAll 
+                        ? state.funcionarios 
+                        : [state.funcionarios.find(f => f.id === state.funcionarioSelecionadoId)];
+
+                    funcionariosToUpdate.forEach(func => {
+                        if (!func) return;
+                        if (!func.calendario) { func.calendario = {}; }
                         if (isDefault) {
-                            delete funcionario.calendario[currentlyEditingDate];
+                            delete func.calendario[currentlyEditingDate];
                         } else {
-                            funcionario.calendario[currentlyEditingDate] = { 
-                                cor: newColor, 
-                                extras: newExtras, 
-                                atrasos: newAtrasos,
-                                extrasObs: newExtrasObs,
-                                atrasosObs: newAtrasosObs
-                            };
+                            func.calendario[currentlyEditingDate] = updateData;
                         }
-                    }
+                    });
                     
                     saveState();
                     modal.classList.add('hidden');
                     currentlyEditingDate = null;
                 }
-                // ===============================================================================
                 
                 function handleAddEmployee() {
                     if (!canEdit) return; 
@@ -823,28 +790,17 @@
                     employeeSelect.innerHTML = '';
                     listenForChanges();
                 }
-                
-                function toggleTooltipOnTap(cell) {
-                    if (activeTooltipCell === cell) {
-                        hideTooltip();
-                        activeTooltipCell = null;
-                        return;
-                    }
-                    if (activeTooltipCell) {
-                        hideTooltip();
-                    }
-                    showTooltip({ target: cell }); 
-                    activeTooltipCell = cell;
-                }
 
                 function showTooltip(event) {
-                    const dayCell = event.target.closest('.day-cell.has-hours');
+                    const dayCell = event.target.closest('.day-cell.has-hours, .day-cell.valid-day');
                     if (!dayCell) return;
 
                     const dateStr = dayCell.dataset.date;
                     const funcionarioAtual = state.funcionarios.find(f => f.id === state.funcionarioSelecionadoId);
-                    const dayData = funcionarioAtual?.calendario?.[dateStr];
-                    if (!dayData) return;
+                    const dayData = funcionarioAtual?.calendario?.[dateStr] || { cor: 'default' };
+                    
+                    const hasDetails = dayData.cor !== 'default' || (parseFloat(dayData.extras) || 0) > 0 || (parseFloat(dayData.atrasos) || 0) > 0 || dayData.extrasObs || dayData.atrasosObs;
+                    if (!hasDetails) return; // Não mostra o tooltip para dias normais sem dados
 
                     const statusMap = { 'default': 'Normal', 'verde': 'Feriado Nacional', 'amarelo': 'Emenda', 'laranja': 'Feriado Estadual', 'vermelho': 'Falta', 'roxo': 'Afastado' };
                     
@@ -853,15 +809,11 @@
                     
                     if (dayData.extras > 0) {
                         content += `<p><span>Horas Extras:</span> <strong>${dayData.extras}h</strong></p>`;
-                        if (dayData.extrasObs) {
-                            content += `<div class="obs">${dayData.extrasObs}</div>`;
-                        }
+                        if (dayData.extrasObs) { content += `<div class="obs">${dayData.extrasObs}</div>`; }
                     }
                     if (dayData.atrasos > 0) {
                         content += `<p><span>Atraso:</span> <strong>${dayData.atrasos}h</strong></p>`;
-                        if (dayData.atrasosObs) {
-                            content += `<div class="obs">${dayData.atrasosObs}</div>`;
-                        }
+                        if (dayData.atrasosObs) { content += `<div class="obs">${dayData.atrasosObs}</div>`; }
                     }
                     
                     tooltip.innerHTML = content;
@@ -870,22 +822,12 @@
                     const rect = dayCell.getBoundingClientRect();
                     const tooltipWidth = tooltip.offsetWidth;
                     const tooltipHeight = tooltip.offsetHeight;
-
                     let top = window.scrollY + rect.top - tooltipHeight - 10;
-                    if (top < window.scrollY + 10) {
-                        top = window.scrollY + rect.bottom + 10;
-                    }
-
+                    if (top < window.scrollY + 10) { top = window.scrollY + rect.bottom + 10; }
                     let left = window.scrollX + rect.left + (rect.width / 2) - (tooltipWidth / 2);
-                    
                     const margin = 10;
-                    if (left < window.scrollX + margin) {
-                        left = window.scrollX + margin;
-                    }
-                    if ((left + tooltipWidth) > (window.scrollX + window.innerWidth - margin)) {
-                        left = window.scrollX + window.innerWidth - tooltipWidth - margin;
-                    }
-
+                    if (left < window.scrollX + margin) { left = window.scrollX + margin; }
+                    if ((left + tooltipWidth) > (window.scrollX + window.innerWidth - margin)) { left = window.scrollX + window.innerWidth - tooltipWidth - margin; }
                     tooltip.style.left = `${left}px`;
                     tooltip.style.top = `${top}px`;
                 }
@@ -896,13 +838,11 @@
                 
                 function handleMakeSupervisor() {
                     if (!canEdit || !state.funcionarioSelecionadoId) return;
-
                     const funcionario = state.funcionarios.find(f => f.id === state.funcionarioSelecionadoId);
                     if (!funcionario || !funcionario.email) {
                         alert("Este funcionário não tem um e-mail de login associado e não pode ser tornado supervisor.");
                         return;
                     }
-                    
                     const instructions = `Para alterar a função de "${funcionario.nome}" (${funcionario.email}):\n\n` +
                                          `1. Vá para o seu console do Firebase e abra o Firestore Database.\n` +
                                          `2. Encontre a coleção "user_roles".\n` +
@@ -911,14 +851,12 @@
                                          `5. Para torná-lo SUPERVISOR, mude o campo "role" para "supervisor".\n` +
                                          `6. Para REMOVER o acesso de supervisor, mude o campo "role" para "viewer".\n\n` +
                                          `Esta alteração manual é necessária por segurança.`;
-                    
                     alert(instructions);
                 }
 
                 function updateSupervisorStatusText() {
                     employeeStatusSpan.textContent = ''; 
                     const funcionario = state.funcionarios.find(f => f.id === state.funcionarioSelecionadoId);
-
                     if (canEdit && funcionario && funcionario.email) {
                         employeeStatusSpan.textContent = '(Clique em "Tornar/Remover Supervisor" para gerenciar o acesso)';
                     }
