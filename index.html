@@ -20,6 +20,7 @@
             --cor-laranja: #FFA726; 
             --cor-vermelho: #EF5350; 
             --cor-roxo: #9575CD; 
+            --cor-prata: #bdc3c7; /* NOVO */
         }
 
         body { font-family: system-ui, sans-serif; background-color: var(--cor-fundo); color: var(--cor-texto); margin: 0; padding: 0; }
@@ -75,11 +76,12 @@
         .legend-verde { background-color: var(--cor-principal); color: var(--cor-verde); border-color: var(--cor-verde); }
         .legend-laranja { background-color: var(--cor-principal); color: var(--cor-laranja); border-color: var(--cor-laranja); }
         .legend-amarelo { background-color: var(--cor-principal); color: var(--cor-amarelo); border-color: var(--cor-amarelo); }
+        .legend-prata { background-color: var(--cor-principal); color: var(--cor-prata); border-color: var(--cor-prata); } /* NOVO */
         .legend-vermelho { background-color: var(--cor-principal); color: var(--cor-vermelho); border-color: var(--cor-vermelho); }
         .legend-roxo { background-color: var(--cor-principal); color: var(--cor-roxo); border-color: var(--cor-roxo); }
         
         .controls-container {
-            display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; margin-bottom: 25px;
+            display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; margin-bottom: 15px;
             padding: 20px; background-color: var(--cor-principal); border-radius: 8px; flex-wrap: wrap;
         }
         .employee-controls { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; flex: 1; min-width: 280px; }
@@ -101,6 +103,33 @@
             background-color: var(--cor-principal); padding: 10px; border-radius: 8px; margin-bottom: 20px;
         }
 
+        #batch-actions-container {
+            padding: 20px; background-color: var(--cor-principal); border-radius: 8px;
+            margin-bottom: 25px;
+        }
+        .batch-actions-title {
+            margin-top: 0; margin-bottom: 15px; font-size: 1.2em;
+            color: var(--cor-texto); border-bottom: 1px solid var(--cor-destaque);
+            padding-bottom: 10px;
+        }
+        .batch-controls {
+            display: flex; flex-wrap: wrap; align-items: flex-end; gap: 15px;
+        }
+        .batch-controls .input-group {
+            display: flex; flex-direction: column; gap: 5px; flex-grow: 1;
+        }
+        .batch-controls label { font-weight: bold; font-size: 0.9em; }
+        .batch-controls input, .batch-controls select {
+             padding: 10px; border-radius: 5px; border: 1px solid var(--cor-texto);
+             font-size: 1em; box-sizing: border-box; background-color: var(--cor-fundo); color: var(--cor-texto);
+        }
+        .batch-controls button {
+             padding: 10px 20px; border-radius: 5px; border: none; font-size: 1em;
+             font-weight: bold; cursor: pointer; background-color: var(--cor-amarelo); color: var(--cor-fundo);
+        }
+        .skip-weekends-group { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; cursor: pointer; }
+        .skip-weekends-group label { cursor: pointer; font-weight: normal; }
+
         #calendar-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
         .month-container { flex: 1 1 300px; min-width: 300px; max-width: 400px; }
         .month-title { text-align: center; font-size: 1.2em; font-weight: bold; color: var(--cor-texto); margin-bottom: 10px; }
@@ -117,6 +146,7 @@
         .day-cell.color-verde { background-color: var(--cor-verde); color: var(--cor-fundo); font-weight: bold; }
         .day-cell.color-laranja { background-color: var(--cor-laranja); color: var(--cor-fundo); font-weight: bold; }
         .day-cell.color-amarelo { background-color: var(--cor-amarelo); color: var(--cor-fundo); font-weight: bold; }
+        .day-cell.color-prata { background-color: var(--cor-prata); color: var(--cor-fundo); font-weight: bold; } /* NOVO */
         .day-cell.color-vermelho { background-color: var(--cor-vermelho); color: white; font-weight: bold; }
         .day-cell.color-roxo { background-color: var(--cor-roxo); color: white; font-weight: bold; }
 
@@ -183,7 +213,6 @@
         #day-tooltip p { margin: 6px 0; display: flex; justify-content: space-between; align-items: center;}
         #day-tooltip p span { color: #bdc3c7; }
         #day-tooltip .obs { font-style: italic; color: #bdc3c7; background-color: #34495e; padding: 4px 8px; border-radius: 4px; margin-top: 4px; justify-content: flex-start; width: 100%; box-sizing: border-box;}
-
     </style>
 </head>
 <body>
@@ -221,6 +250,7 @@
                     <div class="legend-item legend-verde">Feriados Nacionais</div>
                     <div class="legend-item legend-laranja">Feriados Estaduais</div>
                     <div class="legend-item legend-amarelo">Emendas</div>
+                    <div class="legend-item legend-prata">Férias</div> <!-- NOVO -->
                     <div class="legend-item legend-vermelho">Faltas</div>
                     <div class="legend-item legend-roxo">Afastado</div>
                 </div>
@@ -247,6 +277,37 @@
                     <div class="summary-item summary-total"> <strong>SALDO DE HORAS:</strong> <strong><span id="summary-saldo">0</span></strong> </div>
                 </div>
             </div>
+
+            <div id="batch-actions-container" class="hidden">
+                <h3 class="batch-actions-title">Aplicar Status em Lote</h3>
+                <div class="batch-controls">
+                    <div class="input-group">
+                        <label for="range-start-date">Data de Início</label>
+                        <input type="date" id="range-start-date">
+                    </div>
+                    <div class="input-group">
+                        <label for="range-end-date">Data de Fim</label>
+                        <input type="date" id="range-end-date">
+                    </div>
+                    <div class="input-group">
+                        <label for="range-status-select">Status a Aplicar</label>
+                        <select id="range-status-select">
+                            <option value="default">Dia Normal</option>
+                            <option value="amarelo">Emenda</option>
+                            <option value="prata">Férias</option> <!-- NOVO -->
+                            <option value="vermelho">Falta</option>
+                            <option value="roxo">Afastado</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <div class="skip-weekends-group">
+                            <input type="checkbox" id="skip-weekends-checkbox" checked>
+                            <label for="skip-weekends-checkbox">Ignorar fins de semana</label>
+                        </div>
+                        <button id="apply-range-btn">Aplicar no Período</button>
+                    </div>
+                </div>
+            </div>
             
             <div id="calendar-container"></div>
         </div>
@@ -262,6 +323,7 @@
                     <option value="default">Dia Normal</option>
                     <option value="verde">Feriado Nacional</option>
                     <option value="amarelo">Emenda</option>
+                    <option value="prata">Férias</option> <!-- NOVO -->
                     <option value="laranja">Feriado Estadual</option>
                     <option value="vermelho">Falta</option>
                     <option value="roxo">Afastado</option>
@@ -456,6 +518,13 @@
                 const passwordCancelBtn = document.getElementById('password-cancel-btn');
                 const passwordChangeError = document.getElementById('password-change-error');
 
+                const batchActionsContainer = document.getElementById('batch-actions-container');
+                const rangeStartDate = document.getElementById('range-start-date');
+                const rangeEndDate = document.getElementById('range-end-date');
+                const rangeStatusSelect = document.getElementById('range-status-select');
+                const skipWeekendsCheckbox = document.getElementById('skip-weekends-checkbox');
+                const applyRangeBtn = document.getElementById('apply-range-btn');
+                
                 let state = { funcionarios: [], funcionarioSelecionadoId: null };
                 let localStateLoaded = false;
                 
@@ -492,6 +561,7 @@
                     yearSelect.disabled = false; 
                     makeSupervisorBtn.classList.toggle('hidden', !canEdit);
                     document.getElementById('view-only-notice').classList.toggle('hidden', canEdit);
+                    batchActionsContainer.classList.toggle('hidden', !canEdit);
                 }
 
                 function saveState() {
@@ -533,8 +603,10 @@
                             const date = new Date(dateString + 'T00:00:00');
                             const dayOfWeek = date.getDay(); 
                             const isWeekday = dayOfWeek >= 1 && dayOfWeek <= 5;
-                            if (isWeekday && ['amarelo', 'laranja'].includes(data.cor)) { folgasUteis++; }
-                            if (data.cor === 'verde' || (!isWeekday && ['amarelo', 'laranja', 'vermelho'].includes(data.cor))) { folgasFeriadoFDS++; }
+                            /* NOVO: Adicionado 'prata' (Férias) ao cálculo de folgas úteis */
+                            if (isWeekday && ['amarelo', 'laranja', 'prata'].includes(data.cor)) { folgasUteis++; }
+                            /* NOVO: Adicionado 'prata' (Férias) ao cálculo de folgas em FDS/Feriado */
+                            if (data.cor === 'verde' || (!isWeekday && ['amarelo', 'laranja', 'vermelho', 'prata'].includes(data.cor))) { folgasFeriadoFDS++; }
                             totalExtras += parseFloat(data.extras) || 0;
                             totalAtrasos += parseFloat(data.atrasos) || 0;
                         }
@@ -699,6 +771,66 @@
                     modal.classList.add('hidden');
                 }
                 
+                function handleApplyDateRange() {
+                    if (!canEdit) return;
+
+                    const startDateStr = rangeStartDate.value;
+                    const endDateStr = rangeEndDate.value;
+                    const status = rangeStatusSelect.value;
+                    const skipWeekends = skipWeekendsCheckbox.checked;
+                    const funcionario = state.funcionarios.find(f => f.id === state.funcionarioSelecionadoId);
+
+                    if (!startDateStr || !endDateStr || !status || !funcionario) {
+                        alert("Por favor, preencha a data de início, data de fim e selecione um funcionário.");
+                        return;
+                    }
+                    
+                    const start = new Date(startDateStr + 'T00:00:00');
+                    const end = new Date(endDateStr + 'T00:00:00');
+                    
+                    if (start > end) {
+                        alert("A data de início não pode ser posterior à data de fim.");
+                        return;
+                    }
+                    
+                    if (!confirm(`Você tem certeza que deseja aplicar o status "${rangeStatusSelect.options[rangeStatusSelect.selectedIndex].text}" de ${start.toLocaleDateString('pt-BR')} até ${end.toLocaleDateString('pt-BR')} para ${funcionario.nome}?`)) {
+                        return;
+                    }
+
+                    if (!funcionario.calendario) {
+                        funcionario.calendario = {};
+                    }
+
+                    for (let d = start; d <= end; d.setDate(d.getDate() + 1)) {
+                        const dayOfWeek = d.getDay(); 
+                        if (skipWeekends && (dayOfWeek === 0 || dayOfWeek === 6)) {
+                            continue;
+                        }
+
+                        const dateString = d.toISOString().split('T')[0];
+                        
+                        const existingData = funcionario.calendario[dateString] || {};
+                        const newData = { ...existingData, cor: status };
+
+                        if (status === 'default') {
+                            delete newData.cor;
+                            if (Object.keys(newData).length === 0) {
+                                delete funcionario.calendario[dateString];
+                            } else {
+                                funcionario.calendario[dateString] = newData;
+                            }
+                        } else {
+                            funcionario.calendario[dateString] = newData;
+                        }
+                    }
+                    
+                    saveState();
+                    alert("O período foi atualizado com sucesso!");
+                    rangeStartDate.value = '';
+                    rangeEndDate.value = '';
+                    rangeStatusSelect.value = 'default';
+                }
+
                 function handleAddEmployee() {
                     if (!canEdit) return; 
                     const name = newEmployeeInput.value.trim();
@@ -776,13 +908,13 @@
                     const funcionarioAtual = state.funcionarios.find(f => f.id === state.funcionarioSelecionadoId);
                     const dayData = funcionarioAtual?.calendario?.[dateStr] || { cor: 'default' };
 
-                    const hasDetails = dayData.cor !== 'default' || (parseFloat(dayData.extras) || 0) > 0 || (parseFloat(dayData.atrasos) || 0) > 0 || dayData.extrasObs || dayData.atrasosObs;
+                    const hasDetails = dayData.cor && dayData.cor !== 'default' || (parseFloat(dayData.extras) || 0) > 0 || (parseFloat(dayData.atrasos) || 0) > 0 || dayData.extrasObs || dayData.atrasosObs;
                     if (!hasDetails) return;
 
-                    const statusMap = { 'default': 'Normal', 'verde': 'Feriado Nacional', 'amarelo': 'Emenda', 'laranja': 'Feriado Estadual', 'vermelho': 'Falta', 'roxo': 'Afastado' };
-                    let content = `<h4>${new Date(dateStr + 'T00:00:00').toLocaleDateString('pt-BR', {day: '2-digit', month: 'long'})}</h4><p><span>Status:</span> <strong>${statusMap[dayData.cor]}</strong></p>`;
+                    /* NOVO: Adicionado 'prata': 'Férias' ao mapa de status */
+                    const statusMap = { 'default': 'Normal', 'verde': 'Feriado Nacional', 'amarelo': 'Emenda', 'prata': 'Férias', 'laranja': 'Feriado Estadual', 'vermelho': 'Falta', 'roxo': 'Afastado' };
+                    let content = `<h4>${new Date(dateStr + 'T00:00:00').toLocaleDateString('pt-BR', {day: '2-digit', month: 'long'})}</h4><p><span>Status:</span> <strong>${statusMap[dayData.cor] || 'Normal'}</strong></p>`;
                     
-                    // Lógica corrigida aqui
                     if (dayData.extras > 0) {
                         content += `<p><span>Horas Extras:</span> <strong>${dayData.extras}h</strong></p>`;
                     }
@@ -831,7 +963,7 @@
                     }, { passive: true });
 
                     calendarContainer.addEventListener('touchend', () => clearTimeout(longPressTimer));
-                    calendarContainer.addEventListener('touchmove', () => clearTimeout(longPressTimer)); // Cancela com o arrastar
+                    calendarContainer.addEventListener('touchmove', () => clearTimeout(longPressTimer));
                     
                     document.addEventListener('touchstart', (event) => {
                          if (!calendarContainer.contains(event.target) && !tooltip.contains(event.target)) {
@@ -844,18 +976,15 @@
                     calendarContainer.addEventListener('mouseout', hideTooltip);
                 }
                 
-                // Botões de funcionário
                 addEmployeeBtn.addEventListener('click', handleAddEmployee);
                 removeEmployeeBtn.addEventListener('click', handleRemoveEmployee);
                 employeeSelect.addEventListener('change', handleSelectEmployee);
                 yearSelect.addEventListener('change', handleYearChange);
-                makeSupervisorBtn.addEventListener('click', handleMakeSupervisor); // Listener restaurado
+                makeSupervisorBtn.addEventListener('click', handleMakeSupervisor);
 
-                // Botões do Modal do Dia
                 modalSaveBtn.addEventListener('click', handleSaveDay);
                 modalCancelBtn.addEventListener('click', () => modal.classList.add('hidden'));
                 
-                // Botões do Modal de Senha (Listeners restaurados)
                 changePasswordBtn.addEventListener('click', () => {
                     newPasswordInput.value = '';
                     confirmPasswordInput.value = '';
@@ -896,6 +1025,8 @@
                         });
                     }
                 });
+
+                applyRangeBtn.addEventListener('click', handleApplyDateRange);
             }
         });
     </script>
